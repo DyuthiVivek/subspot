@@ -1,38 +1,403 @@
+
+@import url('https://fonts.googleapis.com/css2?family=Signika:wght@700&family=Alexandria:wght@800&family=Montserrat+Alternates:wght@500&family=Montserrat:wght@400&family=Siemreap&display=swap');
+
+@import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css');
+
+
 .App {
   text-align: center;
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
-}
-
 .App-header {
-  background-color: #282c34;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: flex-start;
+  color: #FBFFFA;
+  background-color: #333333;
+  position: relative;
+  overflow: hidden;
+  padding: 20px;
+}
+
+.App-header::before {
+  content: "";
+  position: absolute;
+  top: 10%;
+  left: 10%;
+  width: 30%;
+  height: 20%;
+  background: radial-gradient(circle, #457B9D, transparent);
+  filter: blur(80px);
+  transform: translate(-50%, -50%);
+  opacity: 0.8;
+}
+
+.App-header::after {
+  content: "";
+  position: absolute;
+  top: 5%;
+  right: 5%;
+  width: 40%;
+  height: 30%;
+  background: radial-gradient(circle, #3381F0, transparent);
+  filter: blur(100px);
+  transform: translate(30%, -70%);
+  opacity: 0.7;
+}
+
+.App-header .bottom-left-ellipse {
+  position: absolute;
+  bottom: 0;
+  left: 15%;
+  width: 35%;
+  height: 20%;
+  background: radial-gradient(circle, #e6394792, transparent);
+  filter: blur(110px);
+  transform: translate(-100%, -80%);
+  opacity: 0.4;
+}
+
+.App-header .bottom-right-ellipse {
+  position: absolute;
+  bottom: 10%;
+  right: 10%;
+  width: 85%;
+  height: 20%;
+  background: radial-gradient(circle, #A8DADC, transparent);
+  filter: blur(70px);
+  transform: translate(150%, -80%);
+  opacity: 0.8;
+}
+
+.App-header .bottom-left-ellipse,
+.App-header .bottom-right-ellipse {
+  content: "";
+  position: absolute;
+}
+
+.Navbar {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding-top: 18px; 
+  box-sizing: border-box;
+  position: relative;
+  z-index: 1;
+  margin-left: 120px;       
+  margin-right: 10px;      
+}
+
+.Logo {
+  font-family: 'Signika', sans-serif;
+  font-weight: 700; 
+  font-size: 34px;
+  text-align: left;
+}
+
+.NavLinks {
+  text-align: right;
+  display: flex;       
+  align-items: center;  
+}
+
+.NavLinks a {
+  font-family: 'Siemreap', sans-serif;
+  font-weight: 1; 
+  font-size: 20px;
+  color: #FBFFFA;
+  text-decoration: none;
+  margin-left: 70px;  
+  transition: color 0.3s ease;
+}
+
+.NavLinks a:first-child {
+  margin-left: 600px;   
+}
+
+.NavLinks a:hover {
+  color: #A8DADC;
+}
+
+
+.Content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
+  margin-top: 140px;
+  position: relative;
+  z-index: 1;
 }
 
-.App-link {
-  color: #61dafb;
+.Content h1 {
+  font-family: 'Alexandria', sans-serif;
+  font-weight: 200; 
+  font-size: 48px;
+  margin: 0;
+  line-height: 1.7;
+  letter-spacing: 2px;
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+
+.GetStartedButton {
+  width: 250px;        
+  height: 50px;      
+  background-color: #A8DADC;
+  color: #333333;
+  font-family: 'Montserrat Alternates', sans-serif;
+  font-weight: 100;   
+  font-size: 21px;
+  border: none;
+  border-radius: 37px; 
+  cursor: pointer;
+  margin-top: 120px;     
+  transition: background-color 0.3s ease;
+}
+
+.GetStartedButton:hover {
+  background-color: #FBFFFA;
+  color: #333333;
+}
+
+.LoginLink {
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 100;
+  font-size: 14px;
+  margin-top: 20px;      
+  cursor: pointer;
+}
+
+.LoginLink a {
+  color: #A8DADC;
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.LoginLink a:hover {
+  text-decoration: underline;
+  color: #FBFFFA;
+  cursor: pointer;
+}
+.OurServicesSection {
+  padding-top: 90px;
+  text-align: center;
+  color: #FBFFFA;
+  background-color: #333333;
+  position: relative;  
+  padding-bottom: 180px;
+}
+
+.OurServicesSection::before { 
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 10%;
+  width: 35%;
+  height: 20%;
+  background: radial-gradient(circle, #fa0318, transparent);  
+  filter: blur(100px);
+  transform: translate(-70%, -50%);
+  opacity: 0.4;
+}
+
+.OurServicesSection::after {  
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 25%;
+  height: 20%;
+  background: radial-gradient(circle, #A8DADC, transparent); 
+  filter: blur(70px);
+  transform: translate(50%, -50%);
+  opacity: 0.8;
+}
+
+.OurServicesSection h2 {
+  font-family: 'Montserrat Alternates', sans-serif;
+  font-size: 40px;
+  font-weight: 500;
+  margin-bottom: 100px;
+}
+
+.ServicesContainer {
+  display: flex;
+  justify-content: center;  
+  flex-wrap: wrap;         
+  gap: 40px;               
+  max-width: 1200px;       
+  margin: 0 auto;        
+}
+
+.ServiceCard {
+  width: 350px; 
+  padding-left: 30px;
+  padding-right: 30px;
+  border: 1px solid #FBFFFA;
+  border-radius: 10px;
+  background-color: rgba(255, 255, 255, 0.05); 
+  text-align: center;  
+  box-sizing: border-box;  
+  transition: transform 0.3s ease, box-shadow 0.3s ease; 
+}
+
+.ServiceCard:hover {
+  transform: translateY(-5px);  
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);  
+}
+
+.ServiceCard h3 {
+  font-family: 'Montserrat Alternates', sans-serif;
+  font-size: 30px;
+  font-weight: 500;
+  margin-bottom: 30px;
+  text-align: center;
+  line-height: 1.5;
+}
+
+.ServiceCard p {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 17px;
+  line-height: 1.5;
+  font-weight: 200;
+  text-align: justify;  
+}
+
+.ContactSection {
+  padding: 10px 10px;
+  text-align: center;
+  color: #FBFFFA;
+  background-color: #000000da;  
+}
+
+.ContactSection h2 {
+    font-family: 'Montserrat Alternates', sans-serif;
+    font-size: 20px;
+    font-weight: 200;
+    margin-bottom: 10px; 
+}
+
+.ContactInfo {
+    display: flex;
+    margin-left: 300px;
+    align-items: center;
+    gap: 230px;
+    font-family: 'Siemreap', sans-serif;
+    font-size: 20px; 
+}
+
+.ContactInfo > div {
+    display: flex;
+    align-items: center;
+    gap: 10px; 
+}
+
+.ContactInfo svg {
+    font-size: 24px; 
+}
+
+
+.LoginModalOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5); 
+    backdrop-filter: blur(5px); 
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000; 
+    font-family: 'Siemreap', sans-serif;
+}
+
+.LoginModal {
+    background-color: #383838;
+    border-radius: 20px;
+    padding: 40px;
+    width: 400px; 
+    position: relative;
+}
+
+.CloseButton {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: none;
+    border: none;
+    color: #fff;
+    font-size: 24px;
+    cursor: pointer;
+}
+
+.CloseButton:hover {
+    color: #ddd;
+}
+
+.LoginModal h2 {
+    font-size: 30px;
+    margin-bottom: 30px;
+    color: #fff;
+    font-family: 'Montserrat', sans-serif;
+    margin-right: 65px;
+}
+
+.InputGroup {
+    margin-bottom: 30px; 
+}
+
+.InputGroup label {
+    display: flex;
+    font-size: 17px;
+    margin-bottom: 12px;
+    margin-left: 10px;
+    color: #fff;
+    font-family: 'Siemreap', sans-serif;
+}
+
+.InputGroup input {
+    width: 100%;  
+    padding-left: 15px;  
+    box-sizing: border-box;
+    border: 1px solid #DEDBDB;  
+    border-radius: 20px;
+    background: none;
+    color: #fff;       
+    font-size: 17px;
+    font-family: 'Siemreap', sans-serif;
+}
+
+.InputGroup input::placeholder {
+    color: #747474;  
+    font-family: 'Siemreap', sans-serif;
+}
+
+.LoginButton {
+    width: 30%;  
+    padding: 5px;  
+    margin-top: 30px;
+    box-sizing: border-box;
+    background-color: #DEDBDB; 
+    color: #000;     
+    border: none;
+    border-radius: 20px;  
+    cursor: pointer;
+    font-size: 17px;
+    font-family: 'Siemreap', sans-serif;
+    margin-right: 100px;
+}
+
+.LoginButton:hover {
+    background-color: #ccc;
+}
+
+.LoginModalOverlay .LoginModal[data-modal-type="signup"] h2 {
+  margin-bottom: 13px; 
+}
+
+.LoginModalOverlay .LoginModal[data-modal-type="signup"] .LoginButton {
+  margin-top: 10px; 
 }
