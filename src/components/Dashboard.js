@@ -4,8 +4,10 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCircleUser } from '@fortawesome/free-solid-svg-icons';
 import { faPlus, faTrash,faTimes } from '@fortawesome/free-solid-svg-icons'; 
 import { v4 as uuidv4 } from 'uuid';
+import { useNavigate } from 'react-router-dom';
 
 function Dashboard() {
+    const navigate = useNavigate();
     const [expenseRange, setExpenseRange] = useState('Past year'); // State for dropdown
     const [showSubscriptions, setShowSubscriptions] = useState(true);
     const [newSubscriptionName, setNewSubscriptionName] = useState('');
@@ -113,7 +115,9 @@ function Dashboard() {
         setIsAddSubscriptionModalOpen(false);
     };
 
-
+    const handleHomeClick = () => {
+        navigate('/'); // Using navigate here
+      };
     return (
         <div className="dashboard-container">
             
