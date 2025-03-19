@@ -14,14 +14,21 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+"""
+URL configuration for backend project.
+
+The `urlpatterns` list routes URLs to views.
+"""
 from django.contrib import admin
-from django.urls import path
-from django.urls import include
+from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+from subspot.views import home  # Import the home view
 
 urlpatterns = [
-    path('subspot/', include('subspot.urls')),
+    path('', home, name='home'),         # Map the root URL to the home view
+    path('subspot/', include('subspot.urls')),  # Existing URL for app-specific routes
     path('admin/', admin.site.urls),
-]+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
 
