@@ -5,6 +5,7 @@ import { faCircleUser } from '@fortawesome/free-solid-svg-icons';
 import { faPlus, faTrash,faTimes } from '@fortawesome/free-solid-svg-icons'; 
 import { v4 as uuidv4 } from 'uuid';
 import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 
 function Dashboard() {
     const navigate = useNavigate();
@@ -123,9 +124,9 @@ function Dashboard() {
             
             <header className="dashboard-header">
                 <nav className="dashboard-nav">
-                    <a href="#" className="nav-link active">Dashboard</a>
-                    <a href="#" className="nav-link">Market</a>
-                    <a href="#" className="nav-link">Payment</a>
+                    <Link to="/dashboard" className="nav-link active">Dashboard</Link>
+                    <Link to="/market" className="nav-link">Market</Link>
+                    <Link to="/friends" className="nav-link">Friends</Link>
                     <div className="user-icon">
                         <FontAwesomeIcon icon={faCircleUser} />
                     </div>
