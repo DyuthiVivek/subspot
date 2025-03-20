@@ -11,11 +11,15 @@ function Dashboard() {
     const navigate = useNavigate();
     const [expenseRange, setExpenseRange] = useState('Past year'); // State for dropdown
     const [showSubscriptions, setShowSubscriptions] = useState(true);
-    const [newSubscriptionName, setNewSubscriptionName] = useState('');
+    const [newSubscriptionUserId, setNewSubscriptionUserId] = useState(''); // New field
+    const [newSubscriptionServiceName, setNewSubscriptionServiceName] = useState(''); // Renamed from newSubscriptionName
     const [newSubscriptionCost, setNewSubscriptionCost] = useState('');
-    const [newSubscriptionReminder, setNewSubscriptionReminder] = useState('every month'); // Default value
+    const [newSubscriptionReminder, setNewSubscriptionReminder] = useState('every month');
+    const [newSubscriptionStartDate, setNewSubscriptionStartDate] = useState(''); // New field
+    const [newSubscriptionSharable, setNewSubscriptionSharable] = useState('no'); // New field
+    const [newSubscriptionAutoRenew, setNewSubscriptionAutoRenew] = useState('yes');
 
-    // Sample subscription data (replace with your actual data)
+    // Sample subs data 
     const [subscriptions, setSubscriptions] = useState([
         { id: 1, name: 'Spotify Premium', cost: '799', logo: 'https://loodibee.com/wp-content/uploads/Spotify-symbol-black.png', logoStyle: { width: '32px', height: '32px' } },
         { id: 2, name: 'Netflix', cost: '499', logo: 'https://logohistory.net/wp-content/uploads/2023/05/Netflix-Logo-2006-1536x864.png', logoStyle: { width: '32px', height: '32px' } },
@@ -53,27 +57,36 @@ function Dashboard() {
     };
     const handleAddSubscription = (e) => {
         e.preventDefault();
-
-        const existingSubscription = subscriptions.find(sub => sub.name.toLowerCase() === newSubscriptionName.toLowerCase());
-
+    
+        const existingSubscription = subscriptions.find(sub => sub.name.toLowerCase() === newSubscriptionServiceName.toLowerCase());
+    
         const newSubscription = {
-            id: Date.now(),
-            name: newSubscriptionName,
-            cost: newSubscriptionCost,
-            reminder: newSubscriptionReminder,
-            logo: existingSubscription ? existingSubscription.logo : null, // Use existing logo or null
-            logoStyle: existingSubscription ? existingSubscription.logoStyle : {},
+          id: Date.now(),
+          name: newSubscriptionServiceName, // Still using "name" for display consistency
+          cost: newSubscriptionCost,
+          logo: existingSubscription ? existingSubscription.logo : null,
+          logoStyle: existingSubscription ? existingSubscription.logoStyle : {},
+          // Additional fields for backend integration (not displayed on main page)
+          userId: newSubscriptionUserId,
+          reminder: newSubscriptionReminder,
+          startDate: newSubscriptionStartDate,
+          sharable: newSubscriptionSharable,
+          autoRenew: newSubscriptionAutoRenew,
         };
-
+    
         setSubscriptions([...subscriptions, newSubscription]);
         closeAddSubscriptionModal();
-
-        // Clear the input fields after adding the subscription
-        setNewSubscriptionName('');
+    
+        // Reset all fields
+        setNewSubscriptionUserId('');
+        setNewSubscriptionServiceName('');
         setNewSubscriptionCost('');
+        setNewSubscriptionReminder('every month');
+        setNewSubscriptionStartDate('');
+        setNewSubscriptionSharable('no');
+        setNewSubscriptionAutoRenew('yes');
     };
 
-    // **Expense Chart Variables**
     const months = useMemo(() => {
         const allMonths = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
         const currentMonthIndex = new Date().getMonth();
@@ -84,7 +97,7 @@ function Dashboard() {
             case 'Last 6 months':
                 const lastSixMonths = [];
                 for (let i = 5; i >= 0; i--) {
-                    const monthIndex = (currentMonthIndex - i + 12) % 12; // Wrap around to December if needed
+                    const monthIndex = (currentMonthIndex - i + 12) % 12; 
                     lastSixMonths.push(allMonths[monthIndex]);
                 }
                 return lastSixMonths;
@@ -94,13 +107,12 @@ function Dashboard() {
     }, [expenseRange]);
 
     const barHeights = useMemo(() => {
-        // Placeholder for bar heights (replace with actual data)
         const defaultHeights = [70, 20, 35, 50, 10, 75, 80, 90, 25, 15, 60, 40];
 
         if (expenseRange === 'Last month') {
-            return [Math.floor(Math.random() * 100)]; // Random height for last month
+            return [Math.floor(Math.random() * 100)]; 
         } else if (expenseRange === 'Last 6 months') {
-            return Array.from({ length: 6 }, () => Math.floor(Math.random() * 100)); // Random heights for last 6 months
+            return Array.from({ length: 6 }, () => Math.floor(Math.random() * 100)); 
         } else {
             return defaultHeights;
         }
@@ -117,7 +129,7 @@ function Dashboard() {
     };
 
     const handleHomeClick = () => {
-        navigate('/'); // Using navigate here
+        navigate('/'); 
       };
     return (
         <div className="dashboard-container">
@@ -149,7 +161,6 @@ function Dashboard() {
                     </div>
 
                     <div className="expense-chart">
-                        {/* Y-Axis Labels */}
                         <div className="chart-y-axis">
                             <span>3000</span>
                             <span>2000</span>
@@ -157,7 +168,6 @@ function Dashboard() {
                             <span>0</span>
                         </div>
 
-                        {/* Chart Bars */}
                         <div className="chart-bars">
                             {barHeights.map((height, index) => (
                                 <div
@@ -167,14 +177,13 @@ function Dashboard() {
                                 ></div>
                             ))}
                         </div>
-                        {/* X-Axis Labels */}
+
                         <div className="chart-labels">
                             {months.map((month, index) => (
                                 <span key={index}>{month}</span>
                             ))}
                         </div>
 
-                        {/* Horizontal Lines */}
                         <div className="chart-horizontal-lines">
                             <div className="horizontal-line"></div>
                             <div className="horizontal-line"></div>
@@ -252,47 +261,85 @@ function Dashboard() {
                 </section>      
                 {/* Add Subscription Modal */}
                 {isAddSubscriptionModalOpen && (
-                    <div className="LoginModalOverlay">
-                        <div className="LoginModal">
-                            <button className="CloseButton" onClick={closeAddSubscriptionModal}>
-                                <FontAwesomeIcon icon={faTimes} />
-                            </button>
-                            <h2>Add Subscription</h2>
-                            <form onSubmit={handleAddSubscription}>
-                                <div className="InputGroup">
-                                    <label>Name:</label>
-                                    <input
-                                        type="text"
-                                        placeholder="Enter name"
-                                        value={newSubscriptionName}
-                                        onChange={(e) => setNewSubscriptionName(e.target.value)}
-                                    />
-                                </div>
-                                <div className="InputGroup">
-                                    <label>Cost:</label>
-                                    <input
-                                        type="number"
-                                        placeholder="Enter cost"
-                                        value={newSubscriptionCost}
-                                        onChange={(e) => setNewSubscriptionCost(e.target.value)}
-                                    />
-                                </div>
-                                <div className="InputGroup">
-                                    <label>Reminder:</label>
-                                    <select
-                                        value={newSubscriptionReminder}
-                                        onChange={(e) => setNewSubscriptionReminder(e.target.value)}
-                                    >
-                                        <option value="every month">Every Month</option>
-                                        <option value="every year">Every Year</option>
-                                        <option value="every 6 months">Every 6 Months</option>
-                                    </select>
-                                </div>
-                                <button className="LoginButton">Add Subscription</button>
-                            </form>
+                <div className="LoginModalOverlay">
+                    <div className="LoginModal">
+                    <button className="CloseButton" onClick={closeAddSubscriptionModal}>
+                        <FontAwesomeIcon icon={faTimes} />
+                    </button>
+                    <h2>Add Subscription</h2>
+                    <form onSubmit={handleAddSubscription}>
+                        <div className="InputGroup">
+                        <label>User ID:</label>
+                        <input
+                            type="text"
+                            placeholder="Enter user ID"
+                            value={newSubscriptionUserId}
+                            onChange={(e) => setNewSubscriptionUserId(e.target.value)}
+                        />
                         </div>
+                        <div className="InputGroup">
+                        <label>Service Name:</label>
+                        <input
+                            type="text"
+                            placeholder="Enter service name"
+                            value={newSubscriptionServiceName}
+                            onChange={(e) => setNewSubscriptionServiceName(e.target.value)}
+                        />
+                        </div>
+                        <div className="InputGroup">
+                        <label>Cost:</label>
+                        <input
+                            type="number"
+                            placeholder="Enter cost"
+                            value={newSubscriptionCost}
+                            onChange={(e) => setNewSubscriptionCost(e.target.value)}
+                        />
+                        </div>
+                        <div className="InputGroup">
+                        <label>Reminder:</label>
+                        <select
+                            value={newSubscriptionReminder}
+                            onChange={(e) => setNewSubscriptionReminder(e.target.value)}
+                        >
+                            <option value="every month">Every Month</option>
+                            <option value="every year">Every Year</option>
+                            <option value="every 6 months">Every 6 Months</option>
+                            <option value="every week">Every Week</option>
+                        </select>
+                        </div>
+                        <div className="InputGroup">
+                        <label>Start Date:</label>
+                        <input
+                            type="date"
+                            value={newSubscriptionStartDate}
+                            onChange={(e) => setNewSubscriptionStartDate(e.target.value)}
+                        />
+                        </div>
+                        <div className="InputGroup">
+                        <label>Sharable:</label>
+                        <select
+                            value={newSubscriptionSharable}
+                            onChange={(e) => setNewSubscriptionSharable(e.target.value)}
+                        >
+                            <option value="yes">Yes</option>
+                            <option value="no">No</option>
+                        </select>
+                        </div>
+                        <div className="InputGroup">
+                        <label>Auto Renew:</label>
+                        <select
+                            value={newSubscriptionAutoRenew}
+                            onChange={(e) => setNewSubscriptionAutoRenew(e.target.value)}
+                        >
+                            <option value="yes">Yes</option>
+                            <option value="no">No</option>
+                        </select>
+                        </div>
+                        <button className="LoginButton">Add Subscription</button>
+                    </form>
                     </div>
-                )}  
+                </div>
+                )}
                 <div className="bottom-left-ellipse"></div>
                 <div className="bottom-right-ellipse"></div>             
             </main>
