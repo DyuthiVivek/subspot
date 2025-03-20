@@ -1,16 +1,17 @@
 from django.http import HttpResponse, JsonResponse
 from django.views import View
 from django.utils import timezone
-from datetime import timedelta
 from dateutil.relativedelta import relativedelta
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 import json
 
-from .models import Subscription, MonthlyExpense, User
+from ..models import Subscription, MonthlyExpense, User
 
 def home(request):
     return HttpResponse("Welcome to the Homepage!")
+
+# views for dashboard page
 
 @method_decorator(csrf_exempt, name='dispatch')
 class SubscriptionsView(View):
@@ -18,12 +19,12 @@ class SubscriptionsView(View):
         # get all subscriptions for the authenticated user
 
         user = request.user
-        subscriptions = list(Subscription.objects.filter(owner=user).values())
+        subscriptions = list(Subscription.objects.filter(owner=user.id).values())
         
         for sub in subscriptions:
             sub['amount'] = float(sub['amount'])
             # add default logo for now
-            sub['logo'] = f"https://logo.clearbit.com/{sub['service_name'].lower().replace(' ', '')}.com"
+            sub['logo'] = f"https://logo.clearbit.com/{sub['service_name'].split()[0].lower()}.com"
             # renaming to match frontend
             sub['name'] = sub.pop('service_name')
             sub['cost'] = str(sub.pop('amount'))
@@ -54,7 +55,7 @@ class SubscriptionsView(View):
                 'id': new_subscription.id,
                 'name': new_subscription.service_name,
                 'cost': str(new_subscription.amount),
-                'logo': f"https://logo.clearbit.com/{new_subscription.service_name.lower().replace(' ', '')}.com",
+                'logo': f"https://logo.clearbit.com/{new_subscription.service_name.split()[0].lower()}.com",
             }, status=201)
             
         except Exception as e:
@@ -178,3 +179,4 @@ class SubscriptionRemindersView(View):
                 })
         
         return JsonResponse(reminders, safe=False)
+    

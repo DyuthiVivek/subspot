@@ -23,11 +23,9 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
-from subspot.views import home  # Import the home view
 
 urlpatterns = [
-    path('', home, name='home'),         # Map the root URL to the home view
-    path('subspot/', include('subspot.urls')),  # Existing URL for app-specific routes
+    path('subspot/', include('subspot.urls')), 
     path('admin/', admin.site.urls),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 

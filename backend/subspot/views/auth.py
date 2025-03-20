@@ -1,14 +1,14 @@
 from django.views import View
 from django.http import JsonResponse
 from django.contrib.auth import authenticate, login, logout
-from .models import User
+from ..models import User
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 import json
 
 @method_decorator(csrf_exempt, name='dispatch')
 class Login(View):
-     def post(self, request):
+    def post(self, request):
         try:
             # Attempt to parse JSON
             data = json.loads(request.body)
