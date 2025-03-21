@@ -3,6 +3,7 @@ import './LandingPage.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPhone, faEnvelope, faTimes } from '@fortawesome/free-solid-svg-icons';
 import { useNavigate } from 'react-router-dom';
+import Dashboard from './Dashboard';
 
 function LandingPage() {
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
@@ -150,7 +151,6 @@ function LandingPage() {
       )}
     </div>
   );
-  
 }
 
 export default LandingPage;
