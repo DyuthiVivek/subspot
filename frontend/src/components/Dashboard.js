@@ -2,7 +2,6 @@ import React, { useState, useMemo, useEffect } from 'react';
 import './Dashboard.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCircleUser, faPlus, faTrash, faTimes } from '@fortawesome/free-solid-svg-icons';
-import { v4 as uuidv4 } from 'uuid';
 import { useNavigate, Link } from 'react-router-dom';
 
 function Dashboard() {
@@ -10,47 +9,54 @@ function Dashboard() {
   const [expenseRange, setExpenseRange] = useState('Past year');
   const [showSubscriptions, setShowSubscriptions] = useState(true);
   const [newSubscriptionUserId, setNewSubscriptionUserId] = useState('');
-  const [newSubscriptionServiceName, setNewSubscriptionServiceName] = useState('');
+  const [newSubscriptionName, setNewSubscriptionName] = useState(''); 
   const [newSubscriptionCost, setNewSubscriptionCost] = useState('');
-  const [newSubscriptionReminder, setNewSubscriptionReminder] = useState('every month');
+  const [newSubscriptionReminder, setNewSubscriptionReminder] = useState('monthly'); 
   const [newSubscriptionStartDate, setNewSubscriptionStartDate] = useState('');
-  const [newSubscriptionSharable, setNewSubscriptionSharable] = useState('no');
-  const [newSubscriptionAutoRenew, setNewSubscriptionAutoRenew] = useState('yes');
+  const [newSubscriptionSharable, setNewSubscriptionSharable] = useState(true); 
+  const [newSubscriptionAutoRenew, setNewSubscriptionAutoRenew] = useState(false); 
   
   const [subscriptions, setSubscriptions] = useState([]);
   const [reminders, setReminders] = useState([]);
-  const [expenseData, setExpenseData] = useState([]); 
+  const [expenseData, setExpenseData] = useState([]);
 
-  // Base URL 
-  const API_BASE_URL = 'http://localhost:8000/api/';
+  const API_BASE_URL = 'http://localhost:8000/'; 
 
+  
   useEffect(() => {
     // Fetch Subscriptions
-    fetch(`${API_BASE_URL}subscriptions/`)
+    fetch(`${API_BASE_URL}subscriptions/`, {
+      credentials: 'include', 
+    })
       .then(res => res.json())
       .then(data => setSubscriptions(data))
       .catch(err => console.error('Error fetching subscriptions:', err));
 
     // Fetch Reminders
-    fetch(`${API_BASE_URL}reminders/`)
+    fetch(`${API_BASE_URL}reminders/`, {
+      credentials: 'include',
+    })
       .then(res => res.json())
       .then(data => setReminders(data))
       .catch(err => console.error('Error fetching reminders:', err));
 
-    // Fetch Expense Data 
-    fetch(`${API_BASE_URL}expenses/?range=${expenseRange.toLowerCase().replace(' ', '_')}`)
+    // Fetch Expenses
+    fetch(`${API_BASE_URL}expenses/?range=${expenseRange.toLowerCase().replace(' ', '_')}`, {
+      credentials: 'include',
+    })
       .then(res => res.json())
       .then(data => setExpenseData(data))
       .catch(err => console.error('Error fetching expenses:', err));
-  }, [expenseRange]); 
+  }, [expenseRange]);
 
   const handleTabClick = (tab) => {
     setShowSubscriptions(tab === 'subscriptions');
   };
 
   const handleDeleteReminder = (id) => {
-    fetch(`${API_BASE_URL}reminders/${id}/`, {
+    fetch(`${API_BASE_URL}subscriptions/${id}/`, {
       method: 'DELETE',
+      credentials: 'include',
     })
       .then(() => {
         setReminders(reminders.filter(reminder => reminder.id !== id));
@@ -60,11 +66,13 @@ function Dashboard() {
 
   const handleExpenseRangeChange = (event) => {
     setExpenseRange(event.target.value);
+    
   };
 
   const handleDeleteSubscription = (id) => {
     fetch(`${API_BASE_URL}subscriptions/${id}/`, {
       method: 'DELETE',
+      credentials: 'include',
     })
       .then(() => {
         setSubscriptions(subscriptions.filter(sub => sub.id !== id));
@@ -75,60 +83,37 @@ function Dashboard() {
   const handleAddSubscription = (e) => {
     e.preventDefault();
     const newSubscription = {
-      user_id: newSubscriptionUserId,
-      name: newSubscriptionServiceName,
+      name: newSubscriptionName,
+      reminder: newSubscriptionReminder, 
       cost: newSubscriptionCost,
-      reminder: newSubscriptionReminder,
-      start_date: newSubscriptionStartDate,
-      sharable: newSubscriptionSharable === 'yes',
-      auto_renew: newSubscriptionAutoRenew === 'yes',
+      is_shareable: newSubscriptionSharable,
+      is_autorenew: newSubscriptionAutoRenew,
     };
 
     fetch(`${API_BASE_URL}subscriptions/`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(newSubscription),
+      credentials: 'include',
     })
       .then(res => res.json())
       .then(data => {
         setSubscriptions([...subscriptions, data]);
         closeAddSubscriptionModal();
-        setNewSubscriptionUserId('');
-        setNewSubscriptionServiceName('');
+        setNewSubscriptionName('');
         setNewSubscriptionCost('');
-        setNewSubscriptionReminder('every month');
-        setNewSubscriptionStartDate('');
-        setNewSubscriptionSharable('no');
-        setNewSubscriptionAutoRenew('yes');
+        setNewSubscriptionReminder('monthly');
+        setNewSubscriptionSharable(true);
+        setNewSubscriptionAutoRenew(false);
       })
       .catch(err => console.error('Error adding subscription:', err));
   };
 
-  const months = useMemo(() => {
-    const allMonths = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    const currentMonthIndex = new Date().getMonth();
-    switch (expenseRange) {
-      case 'Last month':
-        return [allMonths[currentMonthIndex]];
-      case 'Last 6 months':
-        const lastSixMonths = [];
-        for (let i = 5; i >= 0; i--) {
-          const monthIndex = (currentMonthIndex - i + 12) % 12;
-          lastSixMonths.push(allMonths[monthIndex]);
-        }
-        return lastSixMonths;
-      default:
-        return allMonths;
-    }
-  }, [expenseRange]);
-
-  const barHeights = useMemo(() => {
-    if (!expenseData.length) return months.map(() => 0); 
-    return months.map((month, index) => {
-      const expense = expenseData.find(e => e.month === month) || { amount: 0 };
-      return (expense.amount / 3000) * 100; 
-    });
-  }, [expenseData, months]);
+  // Expense chart 
+  const months = useMemo(() => expenseData.months || [], [expenseData]);
+  const barHeights = useMemo(() => expenseData.barHeights 
+  ? expenseData.barHeights.map(height => (height / 3000) * 100) 
+  : months.map(() => 0), [expenseData, months]);
 
   const [isAddSubscriptionModalOpen, setIsAddSubscriptionModalOpen] = useState(false);
   const openAddSubscriptionModal = () => setIsAddSubscriptionModalOpen(true);
@@ -172,12 +157,12 @@ function Dashboard() {
             </div>
             <div className="chart-bars">
               {barHeights.map((height, index) => (
-                <div key={index} className="chart-bar" style={{ height: `${height}%` }}></div>
+                <div key={index} className="chart-bar" style={{ height: `${(height / 3000) * 100}%` }}></div>
               ))}
             </div>
             <div className="chart-labels">
               {months.map((month, index) => (
-                <span key={index}>{month}</span>
+                <span key={index}>{month.slice(0, 3)}</span> // Shorten to 3 letters
               ))}
             </div>
             <div className="chart-horizontal-lines">
@@ -211,7 +196,7 @@ function Dashboard() {
                   <div className="subscription-item" key={subscription.id}>
                     <div className="subscription-logo">
                       {subscription.logo && (
-                        <img src={subscription.logo} alt={`${subscription.name} Logo`} style={subscription.logoStyle} />
+                        <img src={subscription.logo} alt={`${subscription.name} Logo`} />
                       )}
                     </div>
                     <div className="subscription-name">{subscription.name}</div>
@@ -260,21 +245,12 @@ function Dashboard() {
               <h2>Add Subscription</h2>
               <form onSubmit={handleAddSubscription}>
                 <div className="InputGroup">
-                  <label>User ID:</label>
-                  <input
-                    type="text"
-                    placeholder="Enter user ID"
-                    value={newSubscriptionUserId}
-                    onChange={(e) => setNewSubscriptionUserId(e.target.value)}
-                  />
-                </div>
-                <div className="InputGroup">
                   <label>Service Name:</label>
                   <input
                     type="text"
                     placeholder="Enter service name"
-                    value={newSubscriptionServiceName}
-                    onChange={(e) => setNewSubscriptionServiceName(e.target.value)}
+                    value={newSubscriptionName}
+                    onChange={(e) => setNewSubscriptionName(e.target.value)}
                   />
                 </div>
                 <div className="InputGroup">
@@ -287,30 +263,21 @@ function Dashboard() {
                   />
                 </div>
                 <div className="InputGroup">
-                  <label>Reminder:</label>
+                  <label>Billing Cycle:</label>
                   <select
                     value={newSubscriptionReminder}
                     onChange={(e) => setNewSubscriptionReminder(e.target.value)}
                   >
-                    <option value="every month">Every Month</option>
-                    <option value="every year">Every Year</option>
-                    <option value="every 6 months">Every 6 Months</option>
-                    <option value="every week">Every Week</option>
+                    <option value="monthly">Monthly</option>
+                    <option value="quarterly">Quarterly</option>
+                    <option value="yearly">Yearly</option>
                   </select>
-                </div>
-                <div className="InputGroup">
-                  <label>Start Date:</label>
-                  <input
-                    type="date"
-                    value={newSubscriptionStartDate}
-                    onChange={(e) => setNewSubscriptionStartDate(e.target.value)}
-                  />
                 </div>
                 <div className="InputGroup">
                   <label>Sharable:</label>
                   <select
-                    value={newSubscriptionSharable}
-                    onChange={(e) => setNewSubscriptionSharable(e.target.value)}
+                    value={newSubscriptionSharable ? 'yes' : 'no'}
+                    onChange={(e) => setNewSubscriptionSharable(e.target.value === 'yes')}
                   >
                     <option value="yes">Yes</option>
                     <option value="no">No</option>
@@ -319,8 +286,8 @@ function Dashboard() {
                 <div className="InputGroup">
                   <label>Auto Renew:</label>
                   <select
-                    value={newSubscriptionAutoRenew}
-                    onChange={(e) => setNewSubscriptionAutoRenew(e.target.value)}
+                    value={newSubscriptionAutoRenew ? 'yes' : 'no'}
+                    onChange={(e) => setNewSubscriptionAutoRenew(e.target.value === 'yes')}
                   >
                     <option value="yes">Yes</option>
                     <option value="no">No</option>
