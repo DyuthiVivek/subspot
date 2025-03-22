@@ -30,6 +30,7 @@ class Listing(models.Model):
     subscription = models.OneToOneField(Subscription, on_delete=models.CASCADE, related_name="listings")
     price = models.DecimalField(max_digits=10, decimal_places=2)
     is_sold = models.BooleanField(default=False)
+    duration = models.CharField(max_length=255, default="")
 
     def __str__(self):
         return f"Listing for {self.subscription.service_name} - {'Sold' if self.is_sold else 'Available'}"
