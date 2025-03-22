@@ -109,12 +109,47 @@ function Dashboard() {
       .catch(err => console.error('Error adding subscription:', err));
   };
 
-  // Expense chart 
-  const months = useMemo(() => expenseData.months || [], [expenseData]);
-  const barHeights = useMemo(() => expenseData.barHeights 
-  ? expenseData.barHeights.map(height => (height / 3000) * 100) 
-  : months.map(() => 0), [expenseData, months]);
+  const filteredExpenseData = useMemo(() => {
+    const allMonths = expenseData.months || [];
+    const allBarHeights = expenseData.barHeights || [];
+    const currentMonthIndex = new Date().getMonth(); 
+    const monthNames = [
+      'January', 'February', 'March', 'April', 'May', 'June',
+      'July', 'August', 'September', 'October', 'November', 'December'
+    ];
 
+    const orderedMonths = [];
+    const orderedHeights = [];
+    for (let i = 0; i < 12; i++) {
+      const monthIndex = (currentMonthIndex - 11 + i + 12) % 12;
+      orderedMonths.push(monthNames[monthIndex]);
+      const backendIndex = allMonths.indexOf(monthNames[monthIndex]);
+      orderedHeights.push(backendIndex !== -1 ? allBarHeights[backendIndex] : 0);
+    }
+
+    let filteredMonths = [];
+    let filteredHeights = [];
+
+    if (expenseRange === 'Last month') {
+      filteredMonths = [orderedMonths[11]]; 
+      filteredHeights = [orderedHeights[11]];
+    } else if (expenseRange === 'Last 6 months') {
+      filteredMonths = orderedMonths.slice(6, 12); 
+      filteredHeights = orderedHeights.slice(6, 12);
+    } else { 
+      filteredMonths = orderedMonths;
+      filteredHeights = orderedHeights;
+    }
+
+    return {
+      months: filteredMonths,
+      barHeights: filteredHeights, 
+    };
+  }, [expenseData, expenseRange]);
+ 
+
+  const months = filteredExpenseData.months;
+  const barHeights = filteredExpenseData.barHeights;
   const [isAddSubscriptionModalOpen, setIsAddSubscriptionModalOpen] = useState(false);
   const openAddSubscriptionModal = () => setIsAddSubscriptionModalOpen(true);
   const closeAddSubscriptionModal = () => setIsAddSubscriptionModalOpen(false);
@@ -157,12 +192,16 @@ function Dashboard() {
             </div>
             <div className="chart-bars">
               {barHeights.map((height, index) => (
-                <div key={index} className="chart-bar" style={{ height: `${(height / 3000) * 100}%` }}></div>
+                <div
+                  key={index}
+                  className="chart-bar"
+                  style={{ height: `${(height / 3000) * 100}%` }} 
+                ></div>
               ))}
             </div>
             <div className="chart-labels">
               {months.map((month, index) => (
-                <span key={index}>{month.slice(0, 3)}</span> // Shorten to 3 letters
+                <span key={index}>{month.slice(0, 3)}</span>
               ))}
             </div>
             <div className="chart-horizontal-lines">
