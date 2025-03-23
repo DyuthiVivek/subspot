@@ -13,5 +13,6 @@ urlpatterns = [
     path("reminders/", dashboard_views.SubscriptionRemindersView.as_view(), name="reminders"),
     path("listings/", marketpage_views.AvailableListingsView.as_view(), name="listings"),
     path("unsold-listings/", marketpage_views.UserUnSoldListingsView.as_view(), name="unsold_listings"),
+    path("mark-sold/", marketpage_views.MarkSoldView.as_view(), name="mark_sold"),
 
 ]

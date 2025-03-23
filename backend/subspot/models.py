@@ -33,7 +33,7 @@ class Listing(models.Model):
     duration = models.CharField(max_length=255, default="")
 
     def __str__(self):
-        return f"Listing for {self.subscription.service_name} - {'Sold' if self.is_sold else 'Available'}"
+        return f"{self.id} - Listing for {self.subscription.service_name} - {'Sold' if self.is_sold else 'Available'}"
 
 class FriendConnection(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="friends")
