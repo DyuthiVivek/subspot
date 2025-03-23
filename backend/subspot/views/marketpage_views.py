@@ -1,3 +1,4 @@
+import json
 from django.http import JsonResponse
 from django.views import View
 from django.utils import timezone
@@ -7,6 +8,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 
+@method_decorator(csrf_exempt, name='dispatch')
 class AvailableListingsView(View):
     def get(self, request):
         available_listings = Listing.objects.filter(is_sold=False).select_related('subscription')
@@ -14,16 +16,8 @@ class AvailableListingsView(View):
 
         for listing in available_listings:
             subscription = listing.subscription
-            end_date = subscription.start_date
 
-            if subscription.billing_cycle == Subscription.BillingCycle.MONTHLY:
-                end_date += relativedelta(months=1)
-            elif subscription.billing_cycle == Subscription.BillingCycle.QUARTERLY:
-                end_date += relativedelta(months=3)
-            elif subscription.billing_cycle == Subscription.BillingCycle.YEARLY:
-                end_date += relativedelta(years=1)
-
-            delta = relativedelta(end_date, timezone.now().date())
+            delta = relativedelta(subscription.renew_date, timezone.now().date())
             duration_parts = []
             if delta.years > 0:
                 duration_parts.append(f"{delta.years} years")
@@ -45,8 +39,38 @@ class AvailableListingsView(View):
                     'is_sold': listing.is_sold,
                     'logo': f"https://logo.clearbit.com/{subscription.service_name.split()[0].lower()}.com"
                 })
+            listing.save()
 
         return JsonResponse(listings_data, safe=False)
+    
+    
+    def post(self, request):
+        data = request.POST
+        subscription_id = data.get('subscription_id')
+        price = data.get('price')
+        isSold = data.get('is_sold', False)
+        
+        subscription = Subscription.objects.filter(id=subscription_id).first()
+        if subscription:
+            if Listing.objects.filter(subscription=subscription).exists():
+                return JsonResponse({'message': 'Listing already exists for this subscription!'}, status=400)
+            listing = Listing.objects.create(subscription=subscription, price=price, is_sold=isSold)
+            return JsonResponse({'message': 'Listing created successfully!', 'listing_id': listing.id})
+        else:
+            return JsonResponse({'message': 'Subscription not found!'}, status=404)
+
+
+    def delete(self, request):
+        data = json.loads(request.body)
+        listing_id = data.get('listing_id')
+
+
+        listing = Listing.objects.filter(id=listing_id).first()
+        if listing:
+            listing.delete()
+            return JsonResponse({'message': 'Listing deleted successfully!'})
+        else:
+            return JsonResponse({'message': 'Listing not found!'}, status=404)
     
 
 class UserUnSoldListingsView(LoginRequiredMixin, View):
@@ -57,16 +81,7 @@ class UserUnSoldListingsView(LoginRequiredMixin, View):
 
         for listing in user_listings:
             subscription = listing.subscription
-            end_date = subscription.start_date
-
-            if subscription.billing_cycle == Subscription.BillingCycle.MONTHLY:
-                end_date += relativedelta(months=1)
-            elif subscription.billing_cycle == Subscription.BillingCycle.QUARTERLY:
-                end_date += relativedelta(months=3)
-            elif subscription.billing_cycle == Subscription.BillingCycle.YEARLY:
-                end_date += relativedelta(years=1)
-
-            delta = relativedelta(end_date, timezone.now().date())
+            delta = relativedelta(subscription.renew_date, timezone.now().date())
             duration_parts = []
             if delta.years > 0:
                 duration_parts.append(f"{delta.years} years")
@@ -78,16 +93,17 @@ class UserUnSoldListingsView(LoginRequiredMixin, View):
 
             if delta.years <= 0 and delta.months <= 0 and delta.days <= 0:
                 listing.duration = "Expired"
-            else:
-                listings_data.append({
-                    'id': listing.id,
-                    'seller_id': subscription.owner.id,
-                    'price': listing.price,
-                    'name': subscription.service_name,
-                    'duration': listing.duration,
-                    'is_sold': listing.is_sold,
-                    'logo': f"https://logo.clearbit.com/{subscription.service_name.split()[0].lower()}.com"
-                })
+
+            listing.save()
+            listings_data.append({
+                'id': listing.id,
+                'seller_id': subscription.owner.id,
+                'price': listing.price,
+                'name': subscription.service_name,
+                'duration': listing.duration,
+                'is_sold': listing.is_sold,
+                'logo': f"https://logo.clearbit.com/{subscription.service_name.split()[0].lower()}.com"
+            })
 
         return JsonResponse(listings_data, safe=False)
     

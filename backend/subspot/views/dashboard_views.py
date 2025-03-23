@@ -56,6 +56,7 @@ class SubscriptionsView(View):
                 'name': new_subscription.service_name,
                 'cost': str(new_subscription.amount),
                 'logo': f"https://logo.clearbit.com/{new_subscription.service_name.split()[0].lower()}.com",
+                'renew_date': new_subscription.renew_date.strftime('%b %d')
             }, status=201)
             
         except Exception as e:
@@ -100,13 +101,16 @@ class UserExpensesView(View):
             if month_expense:
                 amount = float(month_expense.amount)
             else:
-                # calculate from subscriptions active in this month
-                nxt_month_start = (month_date + relativedelta(months=1)).replace(day=1)
-                
+                # get all active subscriptions for the month
                 active_subs = Subscription.objects.filter(
                     owner=user,
-                    start_date__lt=nxt_month_start
-                )
+                    start_date__month=month_date.month,
+                    start_date__year=month_date.year,
+                ) | Subscription.objects.filter(
+                    owner=user,
+                    renew_date__month=month_date.month,
+                    renew_date__year=month_date.year,
+                ),
                 
                 # add all subscription amounts
                 amount = sum(float(sub.amount) for sub in active_subs)
@@ -141,42 +145,18 @@ class SubscriptionRemindersView(View):
         today = timezone.now().date()
         
         # reminder only if not autorenewable
-        subscriptions = Subscription.objects.filter(
+        reminders = Subscription.objects.filter(
             owner=user,
-            is_autorenew=False
-        )
+            is_autorenew=False,
+            renew_date__lte = today + relativedelta(days=4)
+        ).values('id', 'service_name', 'renew_date', 'amount')
+
+        for reminder in reminders:
+            reminder['end_date'] = reminder.pop('renew_date').strftime('%b %d')
+            reminder['cost'] = str(reminder.pop('amount'))
+            reminder['logo'] = f"https://logo.clearbit.com/{reminder['service_name'].split()[0].lower()}.com"
+            reminder['name'] = reminder.pop('service_name')
+
+        return JsonResponse(list(reminders), safe=False)
         
-        reminders = []
         
-        for sub in subscriptions:
-            # calculate end date based on billing cycle
-            start_date = sub.start_date
-            billing_cycle = sub.billing_cycle
-            
-
-            if billing_cycle == Subscription.BillingCycle.MONTHLY:
-                end_date = start_date + relativedelta(months=1)
-
-            elif billing_cycle == Subscription.BillingCycle.QUARTERLY:
-                end_date = start_date + relativedelta(months=3)
-
-            elif billing_cycle == Subscription.BillingCycle.YEARLY:
-                end_date = start_date + relativedelta(years=1)
-
-            else:
-                end_date = start_date + relativedelta(months=1)
-
-
-
-            # reminder given if subscription ends in less than 4 days
-            days_remaining = (end_date - today).days
-            if days_remaining < 4:
-                reminders.append({
-                    'id': sub.id,
-                    'name': sub.service_name,
-                    'cost': str(float(sub.amount)),
-                    'date': end_date.strftime('%b %d')
-                })
-        
-        return JsonResponse(reminders, safe=False)
-    

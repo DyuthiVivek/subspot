@@ -4,17 +4,11 @@ from django.contrib.auth import authenticate, login, logout
 from ..models import User
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
-import json
 
 @method_decorator(csrf_exempt, name='dispatch')
 class Login(View):
     def post(self, request):
-        try:
-            # Attempt to parse JSON
-            data = json.loads(request.body)
-        except json.JSONDecodeError:
-            # Fallback: use form data if JSON parsing fails
-            data = request.POST
+        data = request.POST
         
         username = data.get("username")
         password = data.get("password")
@@ -38,29 +32,28 @@ class Logout(View):
 @method_decorator(csrf_exempt, name='dispatch')
 class SignUp(View):
     def post(self, request):
-        print("Raw request body:", request.body)
-        # Parse raw JSON
-        data = json.loads(request.body)
+        data = request.POST
 
         name = data.get("name")
         username = data.get("username")
         password = data.get("password")
         email = data.get("email")
         phone_no = data.get("phone_no")
+        age = data.get("age")
 
-        # Check if user already exists
         if User.objects.filter(username=username).exists():
-            return JsonResponse({"message": "user already exists"}, status=400)
-        
-        # Create user
+            return JsonResponse({"message": "username taken"}, status=400)
+    
         user = User.objects.create_user(
             username=username, 
             password=password, 
             email=email, 
             name=name, 
-            phone_no=phone_no
+            phone_no=phone_no,
+            age=age
         )
-
-        # Log the user in
-        login(request, user)
-        return JsonResponse({"message": "signup successful"})
+        if user:
+            login(request, user)
+            return JsonResponse({"message": "signup successful"})
+        else:
+            return JsonResponse({"message": "signup failed"}, status=400)
