@@ -8,45 +8,74 @@ function Dashboard() {
   const navigate = useNavigate();
   const [expenseRange, setExpenseRange] = useState('Past year');
   const [showSubscriptions, setShowSubscriptions] = useState(true);
-  const [newSubscriptionUserId, setNewSubscriptionUserId] = useState('');
-  const [newSubscriptionName, setNewSubscriptionName] = useState(''); 
+  const [newSubscriptionName, setNewSubscriptionName] = useState('');
   const [newSubscriptionCost, setNewSubscriptionCost] = useState('');
-  const [newSubscriptionReminder, setNewSubscriptionReminder] = useState('monthly'); 
-  const [newSubscriptionStartDate, setNewSubscriptionStartDate] = useState('');
-  const [newSubscriptionSharable, setNewSubscriptionSharable] = useState(true); 
-  const [newSubscriptionAutoRenew, setNewSubscriptionAutoRenew] = useState(false); 
-  
+  const [newSubscriptionReminder, setNewSubscriptionReminder] = useState('monthly');
+  const [newSubscriptionSharable, setNewSubscriptionSharable] = useState(true);
+  const [newSubscriptionAutoRenew, setNewSubscriptionAutoRenew] = useState(false);
+
+  const testSubscriptions = [
+    { id: 1, name: 'Spotify Premium', cost: '799', logo: 'https://loodibee.com/wp-content/uploads/Spotify-symbol-black.png', logoStyle: { width: '32px', height: '32px' }, is_autorenew: false },
+    { id: 2, name: 'Netflix', cost: '499', logo: 'https://logohistory.net/wp-content/uploads/2023/05/Netflix-Logo-2006-1536x864.png', logoStyle: { width: '32px', height: '32px' }, is_autorenew: true },
+    { id: 3, name: 'Coursera', cost: '299', logo: 'https://d3njjcbhbojbot.cloudfront.net/web/bundles/page/assets/coursera-rebrand-logo.png', logoStyle: { width: '30px', height: '30px' }, is_autorenew: false },
+    { id: 4, name: 'YouTube Premium', cost: '599', logo: 'https://www.freepnglogos.com/uploads/youtube-logo-icon-transparent---32.png', logoStyle: { width: '31px', height: '31px' }, is_autorenew: true },
+    { id: 5, name: 'iCloud', cost: '299', logo: 'https://www.freeiconspng.com/uploads/icloud-logos-revision-wikia-iphone-png-images-4.png', logoStyle: { width: '32px', height: '32px' }, is_autorenew: false },
+  ];
+  const testReminders = [
+    { id: 1, name: 'Spotify Premium', cost: '799', date: 'Mar 25' }, 
+    { id: 3, name: 'Coursera', cost: '299', date: 'Mar 26' },
+    { id: 5, name: 'iCloud', cost: '299', date: 'Mar 27' },
+  ];
+  const testExpenseData = {
+    months: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
+    barHeights: [500, 1000, 1500, 800, 1200, 900, 1100, 1300, 700, 600, 1400, 2000],
+  };
+
   const [subscriptions, setSubscriptions] = useState([]);
   const [reminders, setReminders] = useState([]);
-  const [expenseData, setExpenseData] = useState([]);
+  const [expenseData, setExpenseData] = useState({ months: [], barHeights: [] });
 
-  const API_BASE_URL = 'http://localhost:8000/'; 
+  const API_BASE_URL = 'http://localhost:8000/';
 
-  
   useEffect(() => {
-    // Fetch Subscriptions
+
     fetch(`${API_BASE_URL}subscriptions/`, {
-      credentials: 'include', 
+      credentials: 'include',
     })
       .then(res => res.json())
-      .then(data => setSubscriptions(data))
-      .catch(err => console.error('Error fetching subscriptions:', err));
+      .then(data => setSubscriptions(data.length ? data : testSubscriptions))
+      .catch(err => {
+        console.error('Error fetching subscriptions:', err);
+        setSubscriptions(testSubscriptions);
+      });
 
-    // Fetch Reminders
+
     fetch(`${API_BASE_URL}reminders/`, {
       credentials: 'include',
     })
       .then(res => res.json())
-      .then(data => setReminders(data))
-      .catch(err => console.error('Error fetching reminders:', err));
+      .then(data => {
+        const filteredData = data.length ? data.filter(r => {
+          const sub = (data.find(s => s.id === r.id) || testSubscriptions.find(s => s.id === r.id));
+          return sub && !sub.is_autorenew;
+        }) : testReminders;
+        setReminders(filteredData);
+      })
+      .catch(err => {
+        console.error('Error fetching reminders:', err);
+        setReminders(testReminders);
+      });
 
-    // Fetch Expenses
+
     fetch(`${API_BASE_URL}expenses/?range=${expenseRange.toLowerCase().replace(' ', '_')}`, {
       credentials: 'include',
     })
       .then(res => res.json())
-      .then(data => setExpenseData(data))
-      .catch(err => console.error('Error fetching expenses:', err));
+      .then(data => setExpenseData(data.months ? data : testExpenseData))
+      .catch(err => {
+        console.error('Error fetching expenses:', err);
+        setExpenseData(testExpenseData);
+      });
   }, [expenseRange]);
 
   const handleTabClick = (tab) => {
@@ -61,12 +90,14 @@ function Dashboard() {
       .then(() => {
         setReminders(reminders.filter(reminder => reminder.id !== id));
       })
-      .catch(err => console.error('Error deleting reminder:', err));
+      .catch(err => {
+        console.error('Error deleting reminder:', err);
+        setReminders(reminders.filter(reminder => reminder.id !== id));
+      });
   };
 
   const handleExpenseRangeChange = (event) => {
     setExpenseRange(event.target.value);
-    
   };
 
   const handleDeleteSubscription = (id) => {
@@ -76,15 +107,20 @@ function Dashboard() {
     })
       .then(() => {
         setSubscriptions(subscriptions.filter(sub => sub.id !== id));
+        setReminders(reminders.filter(reminder => reminder.id !== id));
       })
-      .catch(err => console.error('Error deleting subscription:', err));
+      .catch(err => {
+        console.error('Error deleting subscription:', err);
+        setSubscriptions(subscriptions.filter(sub => sub.id !== id));
+        setReminders(reminders.filter(reminder => reminder.id !== id));
+      });
   };
 
   const handleAddSubscription = (e) => {
     e.preventDefault();
     const newSubscription = {
       name: newSubscriptionName,
-      reminder: newSubscriptionReminder, 
+      reminder: newSubscriptionReminder,
       cost: newSubscriptionCost,
       is_shareable: newSubscriptionSharable,
       is_autorenew: newSubscriptionAutoRenew,
@@ -98,7 +134,17 @@ function Dashboard() {
     })
       .then(res => res.json())
       .then(data => {
-        setSubscriptions([...subscriptions, data]);
+        const matchingTestSub = testSubscriptions.find(sub => sub.name.toLowerCase() === data.name.toLowerCase());
+        const updatedData = {
+          ...data,
+          logo: matchingTestSub ? matchingTestSub.logo : `https://logo.clearbit.com/${data.name.toLowerCase().split(' ')[0]}.com`,
+          logoStyle: matchingTestSub ? matchingTestSub.logoStyle : { width: '32px', height: '32px' },
+        };
+        setSubscriptions([...subscriptions, updatedData]);
+        if (data.is_autorenew) {
+          const currentDate = new Date().toLocaleString('en-US', { month: 'short', day: '2-digit' }); // e.g., "Mar 23"
+          setReminders([...reminders, { id: data.id, name: data.name, cost: data.cost, date: currentDate }]);
+        }
         closeAddSubscriptionModal();
         setNewSubscriptionName('');
         setNewSubscriptionCost('');
@@ -106,13 +152,35 @@ function Dashboard() {
         setNewSubscriptionSharable(true);
         setNewSubscriptionAutoRenew(false);
       })
-      .catch(err => console.error('Error adding subscription:', err));
+      .catch(err => {
+        console.error('Error adding subscription:', err);
+        const matchingTestSub = testSubscriptions.find(sub => sub.name.toLowerCase() === newSubscriptionName.toLowerCase());
+        const mockData = {
+          id: Date.now(),
+          name: newSubscriptionName,
+          cost: String(newSubscriptionCost),
+          logo: matchingTestSub ? matchingTestSub.logo : `https://logo.clearbit.com/${newSubscriptionName.toLowerCase().split(' ')[0]}.com`,
+          logoStyle: matchingTestSub ? matchingTestSub.logoStyle : { width: '32px', height: '32px' },
+          is_autorenew: newSubscriptionAutoRenew,
+        };
+        setSubscriptions([...subscriptions, mockData]);
+        if (newSubscriptionAutoRenew) {
+          const currentDate = new Date().toLocaleString('en-US', { month: 'short', day: '2-digit' }); 
+          setReminders([...reminders, { id: mockData.id, name: mockData.name, cost: mockData.cost, date: currentDate }]);
+        }
+        closeAddSubscriptionModal();
+        setNewSubscriptionName('');
+        setNewSubscriptionCost('');
+        setNewSubscriptionReminder('monthly');
+        setNewSubscriptionSharable(true);
+        setNewSubscriptionAutoRenew(false);
+      });
   };
 
   const filteredExpenseData = useMemo(() => {
     const allMonths = expenseData.months || [];
     const allBarHeights = expenseData.barHeights || [];
-    const currentMonthIndex = new Date().getMonth(); 
+    const currentMonthIndex = new Date().getMonth();
     const monthNames = [
       'January', 'February', 'March', 'April', 'May', 'June',
       'July', 'August', 'September', 'October', 'November', 'December'
@@ -131,30 +199,27 @@ function Dashboard() {
     let filteredHeights = [];
 
     if (expenseRange === 'Last month') {
-      filteredMonths = [orderedMonths[11]]; 
+      filteredMonths = [orderedMonths[11]];
       filteredHeights = [orderedHeights[11]];
     } else if (expenseRange === 'Last 6 months') {
-      filteredMonths = orderedMonths.slice(6, 12); 
+      filteredMonths = orderedMonths.slice(6, 12);
       filteredHeights = orderedHeights.slice(6, 12);
-    } else { 
+    } else {
       filteredMonths = orderedMonths;
       filteredHeights = orderedHeights;
     }
 
     return {
       months: filteredMonths,
-      barHeights: filteredHeights, 
+      barHeights: filteredHeights,
     };
   }, [expenseData, expenseRange]);
- 
 
   const months = filteredExpenseData.months;
   const barHeights = filteredExpenseData.barHeights;
   const [isAddSubscriptionModalOpen, setIsAddSubscriptionModalOpen] = useState(false);
   const openAddSubscriptionModal = () => setIsAddSubscriptionModalOpen(true);
   const closeAddSubscriptionModal = () => setIsAddSubscriptionModalOpen(false);
-
-  const handleHomeClick = () => navigate('/');
 
   return (
     <div className="dashboard-container">
@@ -185,17 +250,17 @@ function Dashboard() {
           </div>
           <div className="expense-chart">
             <div className="chart-y-axis">
-              <span>3000</span>
-              <span>2000</span>
-              <span>1000</span>
-              <span>0</span>
+              <span>Rs.3000</span>
+              <span>Rs.2000</span>
+              <span>Rs.1000</span>
+              <span>Rs.0</span>
             </div>
             <div className="chart-bars">
               {barHeights.map((height, index) => (
                 <div
                   key={index}
                   className="chart-bar"
-                  style={{ height: `${(height / 3000) * 100}%` }} 
+                  style={{ height: `${(height / 3000) * 100}%` }}
                 ></div>
               ))}
             </div>
@@ -235,7 +300,7 @@ function Dashboard() {
                   <div className="subscription-item" key={subscription.id}>
                     <div className="subscription-logo">
                       {subscription.logo && (
-                        <img src={subscription.logo} alt={`${subscription.name} Logo`} />
+                        <img src={subscription.logo} alt={`${subscription.name} Logo`} style={subscription.logoStyle} />
                       )}
                     </div>
                     <div className="subscription-name">{subscription.name}</div>
