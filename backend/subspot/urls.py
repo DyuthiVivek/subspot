@@ -1,6 +1,7 @@
 from django.urls import path
 from .views import dashboard_views, marketpage_views
 from .views import auth
+from .views import ml_prediction_views
 
 urlpatterns = [
     path("auth/login/", auth.Login.as_view(), name="Login"),
@@ -15,5 +16,5 @@ urlpatterns = [
     path("unsold-listings/", marketpage_views.UserUnSoldListingsView.as_view(), name="unsold_listings"),
     path("mark-sold/", marketpage_views.MarkSoldView.as_view(), name="mark_sold"),
     path("sold-listings/", marketpage_views.UserSoldListingsView.as_view(), name="sold_listings"),
-
+    path("prediction/", ml_prediction_views.PredictionView.as_view(), name="prediction"),
 ]
