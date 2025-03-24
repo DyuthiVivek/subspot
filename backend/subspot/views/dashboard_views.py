@@ -73,10 +73,9 @@ class SubscriptionsView(View):
         except Exception as e:
             return JsonResponse({'error': str(e)}, status=400)
 
+@method_decorator(csrf_exempt, name='dispatch')
 class UserExpensesView(View):
     def get(self, request):
-        # get expenses data for the last 12 months
-
         user = request.user
         today = timezone.now().date()
         current_month = today.month
@@ -88,11 +87,11 @@ class UserExpensesView(View):
         bar_heights = []
         
         for i in range(months):
-            month_date = today - relativedelta(months=months-i-1)
+            month_date = today - relativedelta(months=months - i - 1)
             month_name = month_date.strftime('%B')
             months_list.append(month_name)
             
-            # check if already calculated
+            # Check if already calculated
             month_expense = MonthlyExpense.objects.filter(
                 user=user, 
                 month_name=month_name
@@ -101,7 +100,7 @@ class UserExpensesView(View):
             if month_expense:
                 amount = float(month_expense.amount)
             else:
-                # get all active subscriptions for the month
+                # Get all active subscriptions for the month
                 active_subs = Subscription.objects.filter(
                     owner=user,
                     start_date__month=month_date.month,
@@ -109,13 +108,13 @@ class UserExpensesView(View):
                 ) | Subscription.objects.filter(
                     owner=user,
                     renew_date__month=month_date.month,
-                    renew_date__year=month_date.year,
-                ),
+                    renew_date__year=month_date.year
+                )  # Removed comma
                 
-                # add all subscription amounts
-                amount = sum(float(sub.amount) for sub in active_subs)
+                # Safely calculate amount
+                amount = sum(float(sub.amount or 0) for sub in active_subs)  # Handle None
                 
-                # save for future use if month finished
+                # Save for future use if month finished
                 if month_date.month != current_month or month_date.year != current_year:
                     MonthlyExpense.objects.create(
                         user=user,
@@ -124,7 +123,6 @@ class UserExpensesView(View):
                     )
             
             bar_heights.append(amount)
-            
             expenses_data.append({
                 'month': month_name,
                 'amount': amount

@@ -14,23 +14,6 @@ function Dashboard() {
   const [newSubscriptionSharable, setNewSubscriptionSharable] = useState(true);
   const [newSubscriptionAutoRenew, setNewSubscriptionAutoRenew] = useState(false);
 
-  const testSubscriptions = [
-    { id: 1, name: 'Spotify Premium', cost: '799', logo: 'https://loodibee.com/wp-content/uploads/Spotify-symbol-black.png', logoStyle: { width: '32px', height: '32px' }, is_autorenew: false },
-    { id: 2, name: 'Netflix', cost: '499', logo: 'https://logohistory.net/wp-content/uploads/2023/05/Netflix-Logo-2006-1536x864.png', logoStyle: { width: '32px', height: '32px' }, is_autorenew: true },
-    { id: 3, name: 'Coursera', cost: '299', logo: 'https://d3njjcbhbojbot.cloudfront.net/web/bundles/page/assets/coursera-rebrand-logo.png', logoStyle: { width: '30px', height: '30px' }, is_autorenew: false },
-    { id: 4, name: 'YouTube Premium', cost: '599', logo: 'https://www.freepnglogos.com/uploads/youtube-logo-icon-transparent---32.png', logoStyle: { width: '31px', height: '31px' }, is_autorenew: true },
-    { id: 5, name: 'iCloud', cost: '299', logo: 'https://www.freeiconspng.com/uploads/icloud-logos-revision-wikia-iphone-png-images-4.png', logoStyle: { width: '32px', height: '32px' }, is_autorenew: false },
-  ];
-  const testReminders = [
-    { id: 1, name: 'Spotify Premium', cost: '799', date: 'Mar 25' }, 
-    { id: 3, name: 'Coursera', cost: '299', date: 'Mar 26' },
-    { id: 5, name: 'iCloud', cost: '299', date: 'Mar 27' },
-  ];
-  const testExpenseData = {
-    months: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
-    barHeights: [500, 1000, 1500, 800, 1200, 900, 1100, 1300, 700, 600, 1400, 2000],
-  };
-
   const [subscriptions, setSubscriptions] = useState([]);
   const [reminders, setReminders] = useState([]);
   const [expenseData, setExpenseData] = useState({ months: [], barHeights: [] });
@@ -38,67 +21,53 @@ function Dashboard() {
   const API_BASE_URL = 'http://localhost:8000/';
 
   useEffect(() => {
-
-    fetch(`${API_BASE_URL}subscriptions/`, {
+    // Temporary login (remove later with proper auth)
+    fetch(`${API_BASE_URL}auth/login/`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: 'username=admin&password=admin123',
       credentials: 'include',
     })
-      .then(res => res.json())
-      .then(data => setSubscriptions(data.length ? data : testSubscriptions))
-      .catch(err => {
-        console.error('Error fetching subscriptions:', err);
-        setSubscriptions(testSubscriptions);
-      });
+      .then(() => {
+        fetch(`${API_BASE_URL}subscriptions/`, { credentials: 'include' })
+          .then(res => res.json())
+          .then(data => {
+            console.log('Subscriptions:', data);
+            setSubscriptions(data);
+          })
+          .catch(err => console.error('Error fetching subscriptions:', err));
 
+        fetch(`${API_BASE_URL}reminders/`, { credentials: 'include' })
+          .then(res => res.json())
+          .then(data => {
+            console.log('Reminders:', data);
+            setReminders(data);
+          })
+          .catch(err => console.error('Error fetching reminders:', err));
 
-    fetch(`${API_BASE_URL}reminders/`, {
-      credentials: 'include',
-    })
-      .then(res => res.json())
-      .then(data => {
-        const filteredData = data.length ? data.filter(r => {
-          const sub = (data.find(s => s.id === r.id) || testSubscriptions.find(s => s.id === r.id));
-          return sub && !sub.is_autorenew;
-        }) : testReminders;
-        setReminders(filteredData);
+        fetch(`${API_BASE_URL}expenses/?range=${expenseRange.toLowerCase().replace(' ', '_')}`, { credentials: 'include' })
+          .then(res => res.json())
+          .then(data => {
+            console.log('Expenses:', data);
+            setExpenseData({ months: data.months || [], barHeights: data.barHeights || [] });
+          })
+          .catch(err => console.error('Error fetching expenses:', err));
       })
-      .catch(err => {
-        console.error('Error fetching reminders:', err);
-        setReminders(testReminders);
-      });
-
-
-    fetch(`${API_BASE_URL}expenses/?range=${expenseRange.toLowerCase().replace(' ', '_')}`, {
-      credentials: 'include',
-    })
-      .then(res => res.json())
-      .then(data => setExpenseData(data.months ? data : testExpenseData))
-      .catch(err => {
-        console.error('Error fetching expenses:', err);
-        setExpenseData(testExpenseData);
-      });
+      .catch(err => console.error('Login error:', err));
   }, [expenseRange]);
 
-  const handleTabClick = (tab) => {
-    setShowSubscriptions(tab === 'subscriptions');
-  };
+  const handleTabClick = (tab) => setShowSubscriptions(tab === 'subscriptions');
 
   const handleDeleteReminder = (id) => {
     fetch(`${API_BASE_URL}subscriptions/${id}/`, {
       method: 'DELETE',
       credentials: 'include',
     })
-      .then(() => {
-        setReminders(reminders.filter(reminder => reminder.id !== id));
-      })
-      .catch(err => {
-        console.error('Error deleting reminder:', err);
-        setReminders(reminders.filter(reminder => reminder.id !== id));
-      });
+      .then(() => setReminders(reminders.filter(reminder => reminder.id !== id)))
+      .catch(err => console.error('Error deleting reminder:', err));
   };
 
-  const handleExpenseRangeChange = (event) => {
-    setExpenseRange(event.target.value);
-  };
+  const handleExpenseRangeChange = (event) => setExpenseRange(event.target.value);
 
   const handleDeleteSubscription = (id) => {
     fetch(`${API_BASE_URL}subscriptions/${id}/`, {
@@ -109,11 +78,7 @@ function Dashboard() {
         setSubscriptions(subscriptions.filter(sub => sub.id !== id));
         setReminders(reminders.filter(reminder => reminder.id !== id));
       })
-      .catch(err => {
-        console.error('Error deleting subscription:', err);
-        setSubscriptions(subscriptions.filter(sub => sub.id !== id));
-        setReminders(reminders.filter(reminder => reminder.id !== id));
-      });
+      .catch(err => console.error('Error deleting subscription:', err));
   };
 
   const handleAddSubscription = (e) => {
@@ -134,16 +99,9 @@ function Dashboard() {
     })
       .then(res => res.json())
       .then(data => {
-        const matchingTestSub = testSubscriptions.find(sub => sub.name.toLowerCase() === data.name.toLowerCase());
-        const updatedData = {
-          ...data,
-          logo: matchingTestSub ? matchingTestSub.logo : `https://logo.clearbit.com/${data.name.toLowerCase().split(' ')[0]}.com`,
-          logoStyle: matchingTestSub ? matchingTestSub.logoStyle : { width: '32px', height: '32px' },
-        };
-        setSubscriptions([...subscriptions, updatedData]);
-        if (data.is_autorenew) {
-          const currentDate = new Date().toLocaleString('en-US', { month: 'short', day: '2-digit' }); // e.g., "Mar 23"
-          setReminders([...reminders, { id: data.id, name: data.name, cost: data.cost, date: currentDate }]);
+        setSubscriptions([...subscriptions, data]);
+        if (!data.is_autorenew) {  // Add to reminders if non-autorenewing
+          setReminders([...reminders, { id: data.id, name: data.name, cost: data.cost, end_date: data.renew_date }]);
         }
         closeAddSubscriptionModal();
         setNewSubscriptionName('');
@@ -152,29 +110,7 @@ function Dashboard() {
         setNewSubscriptionSharable(true);
         setNewSubscriptionAutoRenew(false);
       })
-      .catch(err => {
-        console.error('Error adding subscription:', err);
-        const matchingTestSub = testSubscriptions.find(sub => sub.name.toLowerCase() === newSubscriptionName.toLowerCase());
-        const mockData = {
-          id: Date.now(),
-          name: newSubscriptionName,
-          cost: String(newSubscriptionCost),
-          logo: matchingTestSub ? matchingTestSub.logo : `https://logo.clearbit.com/${newSubscriptionName.toLowerCase().split(' ')[0]}.com`,
-          logoStyle: matchingTestSub ? matchingTestSub.logoStyle : { width: '32px', height: '32px' },
-          is_autorenew: newSubscriptionAutoRenew,
-        };
-        setSubscriptions([...subscriptions, mockData]);
-        if (newSubscriptionAutoRenew) {
-          const currentDate = new Date().toLocaleString('en-US', { month: 'short', day: '2-digit' }); 
-          setReminders([...reminders, { id: mockData.id, name: mockData.name, cost: mockData.cost, date: currentDate }]);
-        }
-        closeAddSubscriptionModal();
-        setNewSubscriptionName('');
-        setNewSubscriptionCost('');
-        setNewSubscriptionReminder('monthly');
-        setNewSubscriptionSharable(true);
-        setNewSubscriptionAutoRenew(false);
-      });
+      .catch(err => console.error('Error adding subscription:', err));
   };
 
   const filteredExpenseData = useMemo(() => {
@@ -209,10 +145,8 @@ function Dashboard() {
       filteredHeights = orderedHeights;
     }
 
-    return {
-      months: filteredMonths,
-      barHeights: filteredHeights,
-    };
+    console.log('Filtered Expense Data:', { months: filteredMonths, barHeights: filteredHeights });
+    return { months: filteredMonths, barHeights: filteredHeights };
   }, [expenseData, expenseRange]);
 
   const months = filteredExpenseData.months;
@@ -300,7 +234,7 @@ function Dashboard() {
                   <div className="subscription-item" key={subscription.id}>
                     <div className="subscription-logo">
                       {subscription.logo && (
-                        <img src={subscription.logo} alt={`${subscription.name} Logo`} style={subscription.logoStyle} />
+                        <img src={subscription.logo} alt={`${subscription.name} Logo`} style={{ width: '32px', height: '32px' }} />
                       )}
                     </div>
                     <div className="subscription-name">{subscription.name}</div>
@@ -322,8 +256,8 @@ function Dashboard() {
                 {reminders.map((reminder) => (
                   <div className="reminder-item" key={reminder.id}>
                     <div className="reminder-date">
-                      <span className="reminder-month">{reminder.date?.split(' ')[0]}</span>
-                      <span className="reminder-day">{reminder.date?.split(' ')[1]}</span>
+                      <span className="reminder-month">{reminder.end_date?.split(' ')[0]}</span>
+                      <span className="reminder-day">{reminder.end_date?.split(' ')[1]}</span>
                     </div>
                     <div className="reminder-name">{reminder.name}</div>
                     <div className="reminder-cost">Rs. {reminder.cost}</div>
