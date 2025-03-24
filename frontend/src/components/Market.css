@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Signika:wght@700&family=Alexandria:wght@800&family=Montserrat+Alternates:wght@500&family=Montserrat:wght@400&family=Siemreap&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Signika:wght@700&family=Alexandria:wght@800&family=Montserrat+Alternates:wght=500&family=Montserrat:wght=400&family=Siemreap&display=swap');
 
 /* Container for the entire Market page */
 .market-container {
@@ -77,7 +77,7 @@
   position: absolute;
   right: 25px;
   top: 10px;
-  font-size: 40px; 
+  font-size: 40px;
 }
 
 /* Main Content */
@@ -88,50 +88,60 @@
   position: relative;
   z-index: 1;
   padding: 40px;
-  text-align: center; 
+  text-align: center;
 }
 
-/* Buy / Sell Toggle Container */
+/* Default Toggle Container (for Market) */
 .subscription-toggle {
   display: flex;
   justify-content: center;
   align-items: center;
-  background-color: #1E1E1E;  
+  background-color: #1E1E1E;
   border-radius: 20px;
-  gap: 45px;
+  gap: 15px;
   height: 45px;
-  padding: 0 5px;
-  width: 400px;
-  margin: 0 auto 20px auto; 
+  padding: 0 20px;
+  margin: 0 auto 20px auto;
+  width: 550px; /* Market toggle width */
+  box-sizing: border-box;
 }
-  
+
 .toggle-button {
   background-color: transparent;
   border: none;
   color: #FBFFFA;
-  padding: 5px 20px;
-  font-size: 17px;
+  padding: 5px 15px;
+  font-size: 16px;
   font-family: 'Siemreap', sans-serif;
   cursor: pointer;
-  border-radius: 5px;
+  border-radius: 20px;
   display: flex;
   align-items: center;
   justify-content: center;
-  min-width: 160px; 
-  height: 31px;    
+  height: 31px;
+  white-space: nowrap;
 }
 
 .toggle-button.active {
-  background-color: #DEDBDB; 
+  background-color: #DEDBDB;
   color: black;
   border-radius: 20px;
+}
+
+/* ---------------- FRIENDS OVERRIDE ----------------
+   If your Friends.jsx also uses .subscription-toggle
+   but you want it narrower, place an override for
+   .subscription-toggle inside .friends-container
+*/
+.friends-container .subscription-toggle {
+  width: 350px !important; /* narrower for Friends page */
 }
 
 /* Search Bar (only for Buy tab) */
 .search-bar {
   display: inline-flex;
   align-items: center;
-  border: 2px solid #FBFFFA; 
+  border: 2px solid #FBFFFA;
   border-radius: 30px;
   background-color: transparent;
   padding: 0 10px;
@@ -158,11 +168,12 @@
   color: #FBFFFA;
 }
 
-/* Buy Section / Subscription Items */
+/* Buy Section */
 .buy-section {
-  margin-bottom: 40px; 
+  margin-bottom: 40px;
 }
 
+/* Generic subscription item styling */
 .subscription-item {
   background-color: rgba(255, 255, 255, 0.1);
   border-radius: 8px;
@@ -171,10 +182,10 @@
   font-family: 'Siemreap', sans-serif;
   width: 520px;
   box-sizing: border-box;
+  margin: 0 auto 15px auto;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin: 0 auto 15px auto;
 }
 
 /* Left side: Icon + Name/Duration */
@@ -183,10 +194,24 @@
   align-items: center;
 }
 
-.subscription-icon {
+.subscription-icon-container {
   width: 40px;
   height: 40px;
   margin-right: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.subscription-icon {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.empty-icon-space {
+  width: 40px;
+  height: 40px;
 }
 
 .subscription-text {
@@ -207,29 +232,6 @@
   font-family: 'Montserrat', sans-serif;
   font-size: 14px;
   color: #CCCCCC;
-}
-
-/* Container for the icon: always occupies 40x40px space */
-.subscription-icon-container {
-  width: 40px;
-  height: 40px;
-  margin-right: 15px; /* space between the icon area and the text */
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-/* Style for the actual icon image */
-.subscription-icon {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-}
-
-/* Placeholder for when there is no icon: keeps the same dimensions */
-.empty-icon-space {
-  width: 40px;
-  height: 40px;
 }
 
 /* Right side: Price + Action(s) */
@@ -262,11 +264,32 @@
 .sell-section {
   background-color: rgba(255, 255, 255, 0.1);
   border-radius: 8px;
-  width: 600px;
+  width: 680px;
   box-sizing: border-box;
   margin: 0 auto;
   padding: 20px;
   text-align: center;
+}
+
+/* Within the Sell section, each subscription item is wider. */
+.sell-section .subscription-item {
+  width: 640px;
+  margin: 0 auto 15px auto;
+}
+
+/* Keep name from shifting on Edit. */
+.sell-section .subscription-left {
+  flex: 1;
+  display: flex;
+  align-items: center;
+}
+
+/* Right side layout in Sell section */
+.sell-section .subscription-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
 }
 
 /* Sell history container (unsold items) */
@@ -292,7 +315,6 @@
   justify-content: center;
 }
 
-/* NEW: When we have only one button, center it */
 .sell-buttons-container.one-button {
   justify-content: center;
 }
@@ -301,8 +323,8 @@
 .sell-buttons-container .action-button {
   width: 170px;
   height: 40px;
-  padding: 0 0 1.8px 0;         
-  font-size: 17px;      
+  padding: 0 0 1.8px 0;
+  font-size: 17px;
   font-family: 'Siemreap', sans-serif;
   text-align: center;
 }
@@ -382,7 +404,7 @@
 
 /* Hide default arrow in IE/Edge */
 .form-group select::-ms-expand {
-  display: none; 
+  display: none;
 }
 
 /* Disabled placeholder option color */
@@ -392,10 +414,10 @@
 
 /* The custom arrow + dark background for <select> when unselected */
 .form-group select {
-  appearance: none; 
-  -webkit-appearance: none;  
-  -moz-appearance: none;     
-  padding-right: 35px;       
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  padding-right: 35px;
   background-image: url("data:image/svg+xml,%3Csvg%20fill='%23FBFFFA'%20height='10'%20viewBox='0%200%20452%20452'%20width='10'%20xmlns='http://www.w3.org/2000/svg'%3E%3Cpath%20d='M345.188%20153.223L225.923%20272.488%20106.659%20153.223%2077.729%20182.153l148.194%20148.194c2.867%202.867%206.614%204.372%2010.599%204.372%203.984%200%207.731-1.505%2010.598-4.372l148.194-148.194-28.026-28.93z'%3E%3C/path%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 15px center;
@@ -415,13 +437,6 @@
   font-size: 16px;
 }
 
-
-.sell-button {
-  margin-top: 10px;
-  font-family: 'Siemreap', sans-serif;
-  font-size: 16px;
-}
-
 /* Modal overlay covers the entire screen */
 .buy-modal-overlay {
   position: fixed;
@@ -429,11 +444,11 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.6); /* semi-transparent background */
+  background: rgba(0, 0, 0, 0.6);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 9999; /* above everything else */
+  z-index: 9999;
 }
 
 /* The modal box itself */
@@ -464,4 +479,36 @@
   display: flex;
   justify-content: center;
   margin-top: 20px;
+}
+
+/* Popup message for connection request */
+.popup-message {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #333;
+  color: #fff;
+  padding: 12px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
+  animation: fadeInOut 2s ease-in-out;
+}
+
+/* No search results message */
+.no-results-message {
+  text-align: center;
+  font-size: 16px;
+  font-weight: bold;
+  color: #aaa;
+  margin-top: 20px;
+}
+
+/* Popup fade-in and fade-out */
+@keyframes fadeInOut {
+  0% { opacity: 0; }
+  20% { opacity: 1; }
+  80% { opacity: 1; }
+  100% { opacity: 0; }
 }
