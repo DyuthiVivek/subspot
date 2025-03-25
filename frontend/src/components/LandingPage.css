@@ -7,6 +7,10 @@
 .App {
   text-align: center;
 }
+.ErrorMessage {
+  color: red;
+  margin-bottom: 10px;
+}
 
 .App-header {
   min-height: 100vh;

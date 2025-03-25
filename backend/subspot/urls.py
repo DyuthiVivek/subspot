@@ -7,6 +7,7 @@ urlpatterns = [
     path("auth/login/", auth.Login.as_view(), name="Login"),
     path("auth/logout/", auth.Logout.as_view(), name="Logout"),
     path("auth/signup/", auth.SignUp.as_view(), name="Signup"),
+    path("auth/user/", auth.UserInfo.as_view(), name="UserInfo"),
     path("", dashboard_views.home, name="home"),
     path("subscriptions/", dashboard_views.SubscriptionsView.as_view(), name="subscriptions"),
     path('subscriptions/<int:subscription_id>/', dashboard_views.SubscriptionsView.as_view(), name='subscription_detail'),

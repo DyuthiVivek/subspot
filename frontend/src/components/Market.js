@@ -1,13 +1,34 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './Market.css';  
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCircleUser, faSearch, faTrash } from '@fortawesome/free-solid-svg-icons';
 import { Link } from 'react-router-dom';
 
+/**
+ * Helper function to convert the string duration (e.g. "1 month", "2 months")
+ * into a number of days. Adjust as needed.
+ */
+function parseDurationToDays(durationStr) {
+  switch (durationStr) {
+    case '1 month':
+      return 30;
+    case '2 months':
+      return 60;
+    case '3 months':
+      return 90;
+    case '6 months':
+      return 180;
+    case '1 year':
+      return 365;
+    default:
+      return 30; // fallback
+  }
+}
+
 function Market() {
-  // Track which tab is active: "buy" or "sell"
+  // Track which tab is active: "buy", "sell", or "expired"
   const [activeTab, setActiveTab] = useState('buy');
-  // For searching subscriptions
+  // For searching subscriptions (Buy tab)
   const [searchTerm, setSearchTerm] = useState('');
 
   // Show/hide the Sell form
@@ -19,7 +40,7 @@ function Market() {
   const [showBuyModal, setShowBuyModal] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
 
-  // Icons for each subscription
+  // Example icons
   const subscriptionIcons = {
     'Spotify Premium': 'https://img.icons8.com/fluency/48/spotify.png',
     'Netflix': 'https://img.icons8.com/color/48/netflix-desktop-app.png',
@@ -27,7 +48,16 @@ function Market() {
     'YouTube Premium': 'https://img.icons8.com/color/48/youtube-play.png'
   };
 
-  // Sample subscriptions for "Buy" tab
+  // Example user subscriptions (for the "Add to Sell" form)
+  const [userSubscriptions] = useState([
+    { id: 1, name: 'Spotify Premium', duration: '1 month' },
+    { id: 2, name: 'Netflix', duration: '2 months' },
+    { id: 3, name: 'Coursera', duration: '1 month' },
+    { id: 4, name: 'YouTube Premium', duration: '3 months' },
+    { id: 5, name: 'iCloud', duration: '1 month' }
+  ]);
+
+  // Sample items in the Buy tab
   const subscriptionItems = [
     { id: 1, name: 'Spotify Premium', duration: '1 month', price: 149 },
     { id: 2, name: 'Netflix', duration: '2 months', price: 299 },
@@ -35,89 +65,159 @@ function Market() {
     { id: 4, name: 'YouTube Premium', duration: '2 months', price: 249 },
   ];
 
-  // Items currently for sale (in the Sell tab)
+  // Items currently for sale (Sell tab)
   const [sellItems, setSellItems] = useState([
-    { id: 1, name: 'YouTube Premium', duration: '2 months ago', price: 599 },
-    { id: 2, name: 'Spotify Premium', duration: '1 month ago', price: 199 },
+    {
+      id: 101,
+      name: 'YouTube Premium',
+      duration: '2 months ago',
+      price: 599,
+      validUntil: null,
+    },
+    {
+      id: 102,
+      name: 'Spotify Premium',
+      duration: '1 month ago',
+      price: 199,
+      validUntil: null,
+    },
   ]);
 
-  // Items that have been sold (in the Sold History)
+  // Items that have been sold
   const [soldItems, setSoldItems] = useState([]);
 
-  // For adding a new subscription to sell
-  const [newSellSubscription, setNewSellSubscription] = useState({
-    name: '',
-    duration: '',
-    price: ''
-  });
+  // Items that expired
+  const [expiredItems, setExpiredItems] = useState([
+    {
+      id: 201,
+      name: 'Amazon Prime',
+      duration: 'Expired last month',
+      price: 129,
+      validUntil: null,
+    },
+    {
+      id: 202,
+      name: 'Netflix',
+      duration: 'Expired 2 weeks ago',
+      price: 199,
+      validUntil: null,
+    },
+  ]);
+
+  // For the Sell form
+  const [selectedDashboardSub, setSelectedDashboardSub] = useState('');
+  const [sellPrice, setSellPrice] = useState('');
+
+  // ----- NEW STATES & FUNCTIONS for inline price editing -----
+  const [editingPriceId, setEditingPriceId] = useState(null);
+  const [tempPrice, setTempPrice] = useState('');
+
+  // Start editing a particular subscription’s price
+  const handlePriceEdit = (id, currentPrice) => {
+    setEditingPriceId(id);
+    setTempPrice(String(currentPrice)); // keep it as string for input
+  };
+
+  // Save the updated price
+  const handleSavePrice = (id) => {
+    setSellItems((prev) =>
+      prev.map((item) => {
+        if (item.id === id) {
+          return { ...item, price: parseInt(tempPrice, 10) || item.price };
+        }
+        return item;
+      })
+    );
+    setEditingPriceId(null);
+    setTempPrice('');
+  };
+
+  // Cancel price editing
+  const handleCancelPriceEdit = () => {
+    setEditingPriceId(null);
+    setTempPrice('');
+  };
+  // -----------------------------------------------------------
 
   // Filter items based on search (Buy tab)
   const filteredItems = subscriptionItems.filter(item =>
     item.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // Handle switching between Buy and Sell tabs
+  // Handle switching between tabs
   const handleTabChange = (tab) => {
     setActiveTab(tab);
-    // If switching away from Sell, hide the form and sold history
-    if (tab === 'buy') {
+    if (tab !== 'sell') {
       setShowSellForm(false);
       setShowSoldHistory(false);
     }
   };
 
-  // Mark subscription as sold: remove from sellItems, add to soldItems
+  // Mark subscription as sold
   const handleSold = (id) => {
     const itemToSell = sellItems.find((item) => item.id === id);
     if (itemToSell) {
-      setSellItems((prevItems) => prevItems.filter((it) => it.id !== id));
+      setSellItems((prev) => prev.filter((it) => it.id !== id));
       setSoldItems((prevSold) => [...prevSold, itemToSell]);
     }
   };
 
-  // Delete a sell item from the list (completely remove it)
+  // Delete a sell item
   const handleDeleteSellItem = (id) => {
-    setSellItems((prevItems) => prevItems.filter((item) => item.id !== id));
+    setSellItems((prev) => prev.filter((item) => item.id !== id));
   };
 
-  // Toggle the sell form on/off
+  // Toggle the sell form
   const handleAddSubscriptionClick = () => {
     setShowSellForm((prev) => !prev);
-    setShowSoldHistory(false); // hide sold history if open
+    setShowSoldHistory(false);
   };
 
-  // Toggle the sold history on/off
+  // Toggle the sold history
   const handleSellHistoryClick = () => {
     setShowSoldHistory((prev) => !prev);
-    setShowSellForm(false); // hide sell form if open
-  };
-
-  // Handle changes in the sell form fields
-  const handleFormChange = (e) => {
-    const { name, value } = e.target;
-    setNewSellSubscription((prev) => ({ ...prev, [name]: value }));
-  };
-
-  // Submit the sell form to add a new item
-  const handleSellFormSubmit = (e) => {
-    e.preventDefault();
-    if (!newSellSubscription.name || !newSellSubscription.price || !newSellSubscription.duration) {
-      alert("Please fill all fields.");
-      return;
-    }
-    const newItem = {
-      id: Date.now(),
-      name: newSellSubscription.name,
-      duration: newSellSubscription.duration,
-      price: parseInt(newSellSubscription.price, 10) || 0
-    };
-    setSellItems((prev) => [...prev, newItem]);
-    // Clear form
-    setNewSellSubscription({ name: '', duration: '', price: '' });
     setShowSellForm(false);
   };
 
-  // Handle "Buy" button click in the Buy tab
+  // Handle subscription selection in Sell form
+  const handleSelectedSubscriptionChange = (e) => {
+    setSelectedDashboardSub(e.target.value);
+  };
+
+  // Submit the Sell form
+  const handleSellFormSubmit = (e) => {
+    e.preventDefault();
+    if (!selectedDashboardSub || !sellPrice) {
+      alert("Please select a subscription and enter a selling price.");
+      return;
+    }
+    const chosenSub = userSubscriptions.find(
+      (sub) => sub.name === selectedDashboardSub
+    );
+    if (!chosenSub) {
+      alert("Invalid subscription selected.");
+      return;
+    }
+
+    const now = Date.now();
+    const days = parseDurationToDays(chosenSub.duration);
+    const validUntil = now + days * 24 * 60 * 60 * 1000;
+
+    const newItem = {
+      id: Date.now(),
+      name: chosenSub.name,
+      duration: chosenSub.duration,
+      price: parseInt(sellPrice, 10) || 0,
+      validUntil,
+    };
+
+    setSellItems((prev) => [...prev, newItem]);
+    setSelectedDashboardSub('');
+    setSellPrice('');
+    setShowSellForm(false);
+  };
+
+  // Handle "Buy" button
   const handleBuyClick = (item) => {
     setSelectedItem(item);
     setShowBuyModal(true);
@@ -129,10 +229,38 @@ function Market() {
     setSelectedItem(null);
   };
 
-  // Single button: Contact Seller (placeholder logic)
+  // Single button: Contact Seller
   const handleContactSeller = () => {
     alert(`Contacting the seller of ${selectedItem?.name}...`);
     handleCloseBuyModal();
+  };
+
+  // Auto-expire logic
+  useEffect(() => {
+    const interval = setInterval(() => {
+      autoExpireCheck();
+    }, 60000);
+    autoExpireCheck(); // immediate check
+    return () => clearInterval(interval);
+  }, []);
+
+  const autoExpireCheck = () => {
+    const now = Date.now();
+    setSellItems((prevSell) => {
+      const updatedSell = [];
+      const newlyExpired = [];
+      for (const item of prevSell) {
+        if (item.validUntil && now > item.validUntil) {
+          newlyExpired.push(item);
+        } else {
+          updatedSell.push(item);
+        }
+      }
+      if (newlyExpired.length > 0) {
+        setExpiredItems((prevExp) => [...prevExp, ...newlyExpired]);
+      }
+      return updatedSell;
+    });
   };
 
   return (
@@ -165,6 +293,12 @@ function Market() {
           >
             Sell Subscription
           </button>
+          <button
+            className={`toggle-button ${activeTab === 'expired' ? 'active' : ''}`}
+            onClick={() => handleTabChange('expired')}
+          >
+            Expired Subscriptions
+          </button>
         </div>
 
         {/* Search Bar (only for Buy) */}
@@ -183,9 +317,8 @@ function Market() {
         {/* Buy Tab */}
         {activeTab === 'buy' && (
           <div className="buy-section">
-            {filteredItems.map(item => (
+            {filteredItems.map((item) => (
               <div className="subscription-item" key={item.id}>
-                {/* Left side: Icon + Name/Duration */}
                 <div className="subscription-left">
                   <div className="subscription-icon-container">
                     {subscriptionIcons[item.name] ? (
@@ -203,7 +336,6 @@ function Market() {
                     <div className="subscription-duration">{item.duration}</div>
                   </div>
                 </div>
-                {/* Right side: Price + Buy button */}
                 <div className="subscription-right">
                   <span className="subscription-price">Rs. {item.price}</span>
                   <button
@@ -221,7 +353,7 @@ function Market() {
         {/* Sell Tab */}
         {activeTab === 'sell' && (
           <div className="sell-section">
-            {/* Sell History List (unsold items) */}
+            {/* Sell History (unsold items) */}
             <div className="sell-history">
               {sellItems.map((item) => (
                 <div className="subscription-item" key={item.id}>
@@ -243,7 +375,44 @@ function Market() {
                     </div>
                   </div>
                   <div className="subscription-right">
-                    <span className="subscription-price">Rs. {item.price}</span>
+                    {/* If editing this item's price, show input + Save/Cancel */}
+                    {editingPriceId === item.id ? (
+                      <>
+                        <input
+                          type="number"
+                          value={tempPrice}
+                          onChange={(e) => setTempPrice(e.target.value)}
+                          style={{
+                            width: '70px',
+                            borderRadius: '4px',
+                            padding: '3px 5px'
+                          }}
+                        />
+                        <button
+                          className="action-button"
+                          onClick={() => handleSavePrice(item.id)}
+                        >
+                          Save
+                        </button>
+                        <button
+                          className="action-button"
+                          onClick={handleCancelPriceEdit}
+                        >
+                          Cancel
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <span className="subscription-price">Rs. {item.price}</span>
+                        <button
+                          className="action-button"
+                          onClick={() => handlePriceEdit(item.id, item.price)}
+                        >
+                          Edit
+                        </button>
+                      </>
+                    )}
+
                     <button
                       className="action-button"
                       onClick={() => handleSold(item.id)}
@@ -261,13 +430,17 @@ function Market() {
             </div>
 
             {/* Buttons for Add Subscription & Sell History */}
-            <div className={`sell-buttons-container ${!showSellForm ? 'two-buttons' : 'one-button'}`}>
+            <div
+              className={`sell-buttons-container ${
+                !showSellForm ? 'two-buttons' : 'one-button'
+              }`}
+            >
               {!showSellForm && (
                 <button
                   className="action-button add-subscription-button"
                   onClick={handleAddSubscriptionClick}
                 >
-                  Add to Sell 
+                  Add to Sell
                 </button>
               )}
               <button
@@ -277,46 +450,39 @@ function Market() {
                 History
               </button>
             </div>
-            
+
             {/* Sell Form */}
             {showSellForm && (
-              <form className="sell-form" onSubmit={handleSellFormSubmit} required>
+              <form className="sell-form" onSubmit={handleSellFormSubmit}>
                 <div className="form-group">
-                  <label>Name</label>
-                  <input
-                    type="text"
-                    name="name"
-                    placeholder="Enter name"
-                    value={newSellSubscription.name}
-                    onChange={handleFormChange}
-                  />
-                </div>
-                <div className="form-group">
-                  <label>Duration</label>
+                  <label>Select Subscription</label>
                   <select
-                    name="duration"
-                    value={newSellSubscription.duration}
-                    onChange={handleFormChange}
-                    required 
+                    name="selectedSub"
+                    value={selectedDashboardSub}
+                    onChange={handleSelectedSubscriptionChange}
+                    required
                   >
-                    <option value="" disabled>Select Duration</option>
-                    <option value="1 month">1 month</option>
-                    <option value="2 months">2 months</option>
-                    <option value="3 months">3 months</option>
-                    <option value="6 months">6 months</option>
-                    <option value="1 year">1 year</option>
+                    <option value="" disabled>Select from your subscriptions</option>
+                    {userSubscriptions.map((sub) => (
+                      <option key={sub.id} value={sub.name}>
+                        {sub.name}
+                      </option>
+                    ))}
                   </select>
                 </div>
-                <div className="form-group" required>
-                  <label>Cost</label>
+
+                <div className="form-group">
+                  <label>Selling Price</label>
                   <input
-                    type="text"
+                    type="number"
                     name="price"
-                    placeholder="Enter cost"
-                    value={newSellSubscription.price}
-                    onChange={handleFormChange}
+                    placeholder="Enter selling price"
+                    value={sellPrice}
+                    onChange={(e) => setSellPrice(e.target.value)}
+                    required
                   />
                 </div>
+
                 <button className="action-button sell-button" type="submit">
                   Sell Subscription
                 </button>
@@ -359,6 +525,40 @@ function Market() {
             )}
           </div>
         )}
+
+        {/* Expired Tab */}
+        {activeTab === 'expired' && (
+          <div className="sell-section">
+            {expiredItems.length === 0 ? (
+              <p>No subscriptions have expired yet.</p>
+            ) : (
+              expiredItems.map((item) => (
+                <div className="subscription-item" key={item.id}>
+                  <div className="subscription-left">
+                    <div className="subscription-icon-container">
+                      {subscriptionIcons[item.name] ? (
+                        <img
+                          src={subscriptionIcons[item.name]}
+                          alt={item.name}
+                          className="subscription-icon"
+                        />
+                      ) : (
+                        <div className="empty-icon-space"></div>
+                      )}
+                    </div>
+                    <div className="subscription-text">
+                      <div className="subscription-name">{item.name}</div>
+                      <div className="subscription-duration">{item.duration}</div>
+                    </div>
+                  </div>
+                  <div className="subscription-right">
+                    <span className="subscription-price">Rs. {item.price}</span>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        )}
       </main>
 
       {/* MODAL: Single "Contact Seller" Button */}
@@ -373,7 +573,6 @@ function Market() {
             <p>Price: Rs. {selectedItem.price}</p>
 
             <div className="buy-modal-actions">
-              {/* Single button: Contact Seller */}
               <button className="action-button" onClick={handleContactSeller}>
                 Contact Seller
               </button>
