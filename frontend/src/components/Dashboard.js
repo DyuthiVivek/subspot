@@ -17,45 +17,51 @@ function Dashboard() {
   const [subscriptions, setSubscriptions] = useState([]);
   const [reminders, setReminders] = useState([]);
   const [expenseData, setExpenseData] = useState({ months: [], barHeights: [] });
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [userInfo, setUserInfo] = useState({ username: '', email: '' });
 
   const API_BASE_URL = 'http://localhost:8000/';
 
   useEffect(() => {
-    // Temporary login (remove later with proper auth)
-    fetch(`${API_BASE_URL}auth/login/`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: 'username=admin&password=admin123',
-      credentials: 'include',
-    })
-      .then(() => {
-        fetch(`${API_BASE_URL}subscriptions/`, { credentials: 'include' })
-          .then(res => res.json())
-          .then(data => {
-            console.log('Subscriptions:', data);
-            setSubscriptions(data);
-          })
-          .catch(err => console.error('Error fetching subscriptions:', err));
-
-        fetch(`${API_BASE_URL}reminders/`, { credentials: 'include' })
-          .then(res => res.json())
-          .then(data => {
-            console.log('Reminders:', data);
-            setReminders(data);
-          })
-          .catch(err => console.error('Error fetching reminders:', err));
-
-        fetch(`${API_BASE_URL}expenses/?range=${expenseRange.toLowerCase().replace(' ', '_')}`, { credentials: 'include' })
-          .then(res => res.json())
-          .then(data => {
-            console.log('Expenses:', data);
-            setExpenseData({ months: data.months || [], barHeights: data.barHeights || [] });
-          })
-          .catch(err => console.error('Error fetching expenses:', err));
+    fetch(`${API_BASE_URL}auth/user/`, { credentials: 'include' })
+      .then(res => {
+        if (res.status === 401) {
+          navigate('/'); // Redirect to landing (not authenticated)
+          return;
+        }
+        return res.json();
       })
-      .catch(err => console.error('Login error:', err));
-  }, [expenseRange]);
+      .then(data => {
+        if (data) {
+          setUserInfo({ username: data.username, email: data.email });
+        }
+      })
+      .catch(err => console.error('Error fetching user info:', err));
 
+    fetch(`${API_BASE_URL}subscriptions/`, { credentials: 'include' })
+      .then(res => res.json())
+      .then(data => {
+        console.log('Subscriptions:', data);
+        setSubscriptions(data);
+      })
+      .catch(err => console.error('Error fetching subscriptions:', err));
+
+    fetch(`${API_BASE_URL}reminders/`, { credentials: 'include' })
+      .then(res => res.json())
+      .then(data => {
+        console.log('Reminders:', data);
+        setReminders(data);
+      })
+      .catch(err => console.error('Error fetching reminders:', err));
+
+    fetch(`${API_BASE_URL}expenses/?range=${expenseRange.toLowerCase().replace(' ', '_')}`, { credentials: 'include' })
+      .then(res => res.json())
+      .then(data => {
+        console.log('Expenses:', data);
+        setExpenseData({ months: data.months || [], barHeights: data.barHeights || [] });
+      })
+      .catch(err => console.error('Error fetching expenses:', err));  
+  }, [expenseRange, navigate]);
   const handleTabClick = (tab) => setShowSubscriptions(tab === 'subscriptions');
 
   const handleDeleteReminder = (id) => {
@@ -100,7 +106,7 @@ function Dashboard() {
       .then(res => res.json())
       .then(data => {
         setSubscriptions([...subscriptions, data]);
-        if (!data.is_autorenew) {  // Add to reminders if non-autorenewing
+        if (!data.is_autorenew) {  
           setReminders([...reminders, { id: data.id, name: data.name, cost: data.cost, end_date: data.renew_date }]);
         }
         closeAddSubscriptionModal();
@@ -112,7 +118,19 @@ function Dashboard() {
       })
       .catch(err => console.error('Error adding subscription:', err));
   };
+  const handleLogout = () => {
+    fetch(`${API_BASE_URL}auth/logout/`, {
+      method: 'POST',
+      credentials: 'include',
+    })
+      .then(() => {
+        setIsDropdownOpen(false);
+        navigate('/');
+      })
+      .catch(err => console.error('Logout error:', err));
+  };
 
+  const toggleDropdown = () => setIsDropdownOpen(!isDropdownOpen);
   const filteredExpenseData = useMemo(() => {
     const allMonths = expenseData.months || [];
     const allBarHeights = expenseData.barHeights || [];
@@ -163,7 +181,14 @@ function Dashboard() {
           <Link to="/market" className="nav-link">Market</Link>
           <Link to="/friends" className="nav-link">Friends</Link>
           <div className="user-icon">
-            <FontAwesomeIcon icon={faCircleUser} />
+            <FontAwesomeIcon icon={faCircleUser} onClick={toggleDropdown}/>
+            {isDropdownOpen && (
+              <div className="user-dropdown">
+                <p>Username: <span className="value">{userInfo.username}</span></p>
+                <p>Email: <span className="value">{userInfo.email}</span></p>
+                <button className="logout-button" onClick={handleLogout}>Logout</button>
+              </div>
+            )}
           </div>
         </nav>
       </header>
