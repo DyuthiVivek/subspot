@@ -20,13 +20,13 @@ function Dashboard() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [userInfo, setUserInfo] = useState({ username: '', email: '' });
 
-  const API_BASE_URL = 'http://localhost:8000/';
+  const API_BASE_URL = 'http://localhost:8000/subspot/';
 
   useEffect(() => {
     fetch(`${API_BASE_URL}auth/user/`, { credentials: 'include' })
       .then(res => {
         if (res.status === 401) {
-          navigate('/'); // Redirect to landing (not authenticated)
+          navigate('/');
           return;
         }
         return res.json();
@@ -63,14 +63,26 @@ function Dashboard() {
       .catch(err => console.error('Error fetching expenses:', err));  
   }, [expenseRange, navigate]);
   const handleTabClick = (tab) => setShowSubscriptions(tab === 'subscriptions');
-
-  const handleDeleteReminder = (id) => {
-    fetch(`${API_BASE_URL}subscriptions/${id}/`, {
-      method: 'DELETE',
+  const handleMarkReminderDone = (id) => {
+    fetch(`${API_BASE_URL}mark-paid/`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({ subscription_id: id }),
       credentials: 'include',
     })
-      .then(() => setReminders(reminders.filter(reminder => reminder.id !== id)))
-      .catch(err => console.error('Error deleting reminder:', err));
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          // Refresh reminders to reflect the updated renew_date
+          fetch(`${API_BASE_URL}reminders/`, { credentials: 'include' })
+            .then(res => res.json())
+            .then(reminderData => setReminders(reminderData))
+            .catch(err => console.error('Error refreshing reminders:', err));
+        } else {
+          console.error('Failed to mark reminder done:', data.error);
+        }
+      })
+      .catch(err => console.error('Error marking reminder done:', err));
   };
 
   const handleExpenseRangeChange = (event) => setExpenseRange(event.target.value);
@@ -96,7 +108,7 @@ function Dashboard() {
       is_shareable: newSubscriptionSharable,
       is_autorenew: newSubscriptionAutoRenew,
     };
-
+  
     fetch(`${API_BASE_URL}subscriptions/`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -106,9 +118,13 @@ function Dashboard() {
       .then(res => res.json())
       .then(data => {
         setSubscriptions([...subscriptions, data]);
-        if (!data.is_autorenew) {  
-          setReminders([...reminders, { id: data.id, name: data.name, cost: data.cost, end_date: data.renew_date }]);
-        }
+        fetch(`${API_BASE_URL}reminders/`, { credentials: 'include' })
+          .then(res => res.json())
+          .then(reminderData => {
+            console.log('Updated Reminders:', reminderData);
+            setReminders(reminderData);
+          })
+          .catch(err => console.error('Error fetching reminders:', err));
         closeAddSubscriptionModal();
         setNewSubscriptionName('');
         setNewSubscriptionCost('');
@@ -288,7 +304,7 @@ function Dashboard() {
                     <div className="reminder-cost">Rs. {reminder.cost}</div>
                     <button
                       className="done-button"
-                      onClick={() => handleDeleteReminder(reminder.id)}
+                      onClick={() => handleMarkReminderDone(reminder.id)}
                     >
                       Done
                     </button>

@@ -16,7 +16,7 @@ function LandingPage() {
   const [errorMessage, setErrorMessage] = useState('');
 
   const navigate = useNavigate();
-  const API_BASE_URL = 'http://localhost:8000/';
+  const API_BASE_URL = 'http://localhost:8000/subspot/';
 
   const openLoginModal = () => setIsLoginModalOpen(true);
   const closeLoginModal = () => {
