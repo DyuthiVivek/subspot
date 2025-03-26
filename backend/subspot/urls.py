@@ -18,4 +18,6 @@ urlpatterns = [
     path("mark-sold/", marketpage_views.MarkSoldView.as_view(), name="mark_sold"),
     path("sold-listings/", marketpage_views.UserSoldListingsView.as_view(), name="sold_listings"),
     path("prediction/", ml_prediction_views.PredictionView.as_view(), name="prediction"),
+    path("mark-paid/", dashboard_views.MarkReminderDoneView.as_view(), name="mark_paid"),
+    
 ]

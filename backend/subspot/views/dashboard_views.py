@@ -73,25 +73,35 @@ class SubscriptionsView(View):
         except Exception as e:
             return JsonResponse({'error': str(e)}, status=400)
 
-@method_decorator(csrf_exempt, name='dispatch')
 class UserExpensesView(View):
     def get(self, request):
+        # get expenses data accordig to range
+
+        range1 = request.GET.get('range', 'past_year')
+
         user = request.user
         today = timezone.now().date()
         current_month = today.month
         current_year = today.year
-        months = 12
         
+        if range1 == 'last_month':
+            months = 1
+        elif range1 == 'last_6_months':
+            months = 6
+        else:
+            months = 12
+
+
         expenses_data = []
         months_list = []
         bar_heights = []
         
         for i in range(months):
-            month_date = today - relativedelta(months=months - i - 1)
+            month_date = today - relativedelta(months=months-i-1)
             month_name = month_date.strftime('%B')
             months_list.append(month_name)
             
-            # Check if already calculated
+            # check if already calculated
             month_expense = MonthlyExpense.objects.filter(
                 user=user, 
                 month_name=month_name
@@ -100,7 +110,7 @@ class UserExpensesView(View):
             if month_expense:
                 amount = float(month_expense.amount)
             else:
-                # Get all active subscriptions for the month
+                # get all active subscriptions for the month
                 active_subs = Subscription.objects.filter(
                     owner=user,
                     start_date__month=month_date.month,
@@ -108,13 +118,13 @@ class UserExpensesView(View):
                 ) | Subscription.objects.filter(
                     owner=user,
                     renew_date__month=month_date.month,
-                    renew_date__year=month_date.year
-                )  # Removed comma
+                    renew_date__year=month_date.year,
+                )
                 
-                # Safely calculate amount
-                amount = sum(float(sub.amount or 0) for sub in active_subs)  # Handle None
+                # add all subscription amounts
+                amount = sum(float(sub.amount) for sub in active_subs)
                 
-                # Save for future use if month finished
+                # save for future use if month finished
                 if month_date.month != current_month or month_date.year != current_year:
                     MonthlyExpense.objects.create(
                         user=user,
@@ -123,6 +133,7 @@ class UserExpensesView(View):
                     )
             
             bar_heights.append(amount)
+            
             expenses_data.append({
                 'month': month_name,
                 'amount': amount
@@ -158,3 +169,39 @@ class SubscriptionRemindersView(View):
         return JsonResponse(list(reminders), safe=False)
         
         
+@method_decorator(csrf_exempt, name='dispatch')
+class MarkReminderDoneView(View):
+    def post(self, request):
+        # mark a reminder as done (update renew date)
+
+        try:
+            data = request.POST
+            subscription_id = data.get('subscription_id')
+            
+            try:
+                subscription = Subscription.objects.get(id=subscription_id, owner=request.user)
+            except Subscription.DoesNotExist:
+                return JsonResponse({'error': 'Subscription not found'}, status=404)
+            
+            # new renewal date = current renewal date + billing cycle
+            if subscription.billing_cycle == Subscription.BillingCycle.MONTHLY:
+                subscription.renew_date += relativedelta(months=1)
+            elif subscription.billing_cycle == Subscription.BillingCycle.QUARTERLY:
+                subscription.renew_date += relativedelta(months=3)
+            elif subscription.billing_cycle == Subscription.BillingCycle.YEARLY:
+                subscription.renew_date += relativedelta(years=1)
+            else:
+                subscription.renew_date += relativedelta(months=1)
+            
+
+            subscription.save()
+            
+            return JsonResponse({
+                'success': True,
+                'id': subscription.id,
+                'name': subscription.service_name,
+                'next_renew_date': subscription.renew_date.strftime('%b %d, %Y')
+            }, status=200)
+            
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
