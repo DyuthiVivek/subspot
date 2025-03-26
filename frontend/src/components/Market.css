@@ -50,6 +50,7 @@
 
 .market-nav {
   display: flex;
+  gap: 60px;
   align-items: center;
   justify-content: center;
   position: relative;
@@ -80,7 +81,6 @@
   font-size: 40px;
 }
 
-/* Main Content */
 .market-content {
   display: flex;
   flex-direction: column;
@@ -134,7 +134,7 @@
    .subscription-toggle inside .friends-container
 */
 .friends-container .subscription-toggle {
-  width: 350px !important; /* narrower for Friends page */
+  width: 320px !important; /* narrower for Friends page */
 }
 
 /* Search Bar (only for Buy tab) */

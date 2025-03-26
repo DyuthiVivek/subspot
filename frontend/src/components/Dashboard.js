@@ -3,6 +3,7 @@ import './Dashboard.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCircleUser, faPlus, faTrash, faTimes } from '@fortawesome/free-solid-svg-icons';
 import { useNavigate, Link } from 'react-router-dom';
+import ChatIcon from './ChatIcon'; 
 
 function Dashboard() {
   const navigate = useNavigate();
@@ -16,7 +17,7 @@ function Dashboard() {
 
   const testSubscriptions = [
     { id: 1, name: 'Spotify Premium', cost: '799', logo: 'https://loodibee.com/wp-content/uploads/Spotify-symbol-black.png', logoStyle: { width: '32px', height: '32px' }, is_autorenew: false },
-    { id: 2, name: 'Netflix', cost: '499', logo: 'https://logohistory.net/wp-content/uploads/2023/05/Netflix-Logo-2006-1536x864.png', logoStyle: { width: '32px', height: '32px' }, is_autorenew: true },
+    { id: 2, name: 'Netflix', cost: '499', logo: 'https://img.icons8.com/color/48/netflix-desktop-app.png', logoStyle: { width: '32px', height: '32px' }, is_autorenew: true },
     { id: 3, name: 'Coursera', cost: '299', logo: 'https://d3njjcbhbojbot.cloudfront.net/web/bundles/page/assets/coursera-rebrand-logo.png', logoStyle: { width: '30px', height: '30px' }, is_autorenew: false },
     { id: 4, name: 'YouTube Premium', cost: '599', logo: 'https://www.freepnglogos.com/uploads/youtube-logo-icon-transparent---32.png', logoStyle: { width: '31px', height: '31px' }, is_autorenew: true },
     { id: 5, name: 'iCloud', cost: '299', logo: 'https://www.freeiconspng.com/uploads/icloud-logos-revision-wikia-iphone-png-images-4.png', logoStyle: { width: '32px', height: '32px' }, is_autorenew: false },
@@ -38,7 +39,6 @@ function Dashboard() {
   const API_BASE_URL = 'http://localhost:8000/';
 
   useEffect(() => {
-
     fetch(`${API_BASE_URL}subscriptions/`, {
       credentials: 'include',
     })
@@ -48,7 +48,6 @@ function Dashboard() {
         console.error('Error fetching subscriptions:', err);
         setSubscriptions(testSubscriptions);
       });
-
 
     fetch(`${API_BASE_URL}reminders/`, {
       credentials: 'include',
@@ -65,7 +64,6 @@ function Dashboard() {
         console.error('Error fetching reminders:', err);
         setReminders(testReminders);
       });
-
 
     fetch(`${API_BASE_URL}expenses/?range=${expenseRange.toLowerCase().replace(' ', '_')}`, {
       credentials: 'include',
@@ -142,7 +140,7 @@ function Dashboard() {
         };
         setSubscriptions([...subscriptions, updatedData]);
         if (data.is_autorenew) {
-          const currentDate = new Date().toLocaleString('en-US', { month: 'short', day: '2-digit' }); // e.g., "Mar 23"
+          const currentDate = new Date().toLocaleString('en-US', { month: 'short', day: '2-digit' });
           setReminders([...reminders, { id: data.id, name: data.name, cost: data.cost, date: currentDate }]);
         }
         closeAddSubscriptionModal();
@@ -165,7 +163,7 @@ function Dashboard() {
         };
         setSubscriptions([...subscriptions, mockData]);
         if (newSubscriptionAutoRenew) {
-          const currentDate = new Date().toLocaleString('en-US', { month: 'short', day: '2-digit' }); 
+          const currentDate = new Date().toLocaleString('en-US', { month: 'short', day: '2-digit' });
           setReminders([...reminders, { id: mockData.id, name: mockData.name, cost: mockData.cost, date: currentDate }]);
         }
         closeAddSubscriptionModal();
@@ -230,6 +228,10 @@ function Dashboard() {
           <Link to="/friends" className="nav-link">Friends</Link>
           <div className="user-icon">
             <FontAwesomeIcon icon={faCircleUser} />
+          </div>
+          {/* Insert ChatIcon next to the user icon */}
+          <div style={{ marginLeft: '20px' }}>
+            <ChatIcon />
           </div>
         </nav>
       </header>

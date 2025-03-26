@@ -2,12 +2,9 @@ import React, { useState, useEffect } from 'react';
 import './Market.css';  
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCircleUser, faSearch, faTrash } from '@fortawesome/free-solid-svg-icons';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';  
+import ChatIcon from './ChatIcon'; 
 
-/**
- * Helper function to convert the string duration (e.g. "1 month", "2 months")
- * into a number of days. Adjust as needed.
- */
 function parseDurationToDays(durationStr) {
   switch (durationStr) {
     case '1 month':
@@ -21,7 +18,7 @@ function parseDurationToDays(durationStr) {
     case '1 year':
       return 365;
     default:
-      return 30; // fallback
+      return 30; 
   }
 }
 
@@ -39,6 +36,9 @@ function Market() {
   // For the "Buy" modal
   const [showBuyModal, setShowBuyModal] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
+
+  // Use navigate hook
+  const navigate = useNavigate();  // <-- used for programmatic navigation
 
   // Example icons
   const subscriptionIcons = {
@@ -231,7 +231,8 @@ function Market() {
 
   // Single button: Contact Seller
   const handleContactSeller = () => {
-    alert(`Contacting the seller of ${selectedItem?.name}...`);
+    // Navigate to the chat page (replace '/chat' with your actual route)
+    navigate('/chats');
     handleCloseBuyModal();
   };
 
@@ -273,6 +274,10 @@ function Market() {
           <Link to="/friends" className="nav-link">Friends</Link>
           <div className="user-icon">
             <FontAwesomeIcon icon={faCircleUser} />
+          </div>
+          {/* ChatIcon added next to user icon */}
+          <div style={{ marginLeft: '20px' }}>
+            <ChatIcon />
           </div>
         </nav>
       </header>
@@ -375,7 +380,6 @@ function Market() {
                     </div>
                   </div>
                   <div className="subscription-right">
-                    {/* If editing this item's price, show input + Save/Cancel */}
                     {editingPriceId === item.id ? (
                       <>
                         <input
@@ -412,7 +416,6 @@ function Market() {
                         </button>
                       </>
                     )}
-
                     <button
                       className="action-button"
                       onClick={() => handleSold(item.id)}
@@ -470,7 +473,6 @@ function Market() {
                     ))}
                   </select>
                 </div>
-
                 <div className="form-group">
                   <label>Selling Price</label>
                   <input
@@ -482,7 +484,6 @@ function Market() {
                     required
                   />
                 </div>
-
                 <button className="action-button sell-button" type="submit">
                   Sell Subscription
                 </button>
@@ -571,7 +572,6 @@ function Market() {
             <h2>Purchase {selectedItem.name}</h2>
             <p>Duration: {selectedItem.duration}</p>
             <p>Price: Rs. {selectedItem.price}</p>
-
             <div className="buy-modal-actions">
               <button className="action-button" onClick={handleContactSeller}>
                 Contact Seller
