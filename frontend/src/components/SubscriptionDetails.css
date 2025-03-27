@@ -1,0 +1,264 @@
+/* Import the same fonts */
+@import url('https://fonts.googleapis.com/css2?family=Signika:wght@700&family=Alexandria:wght@800&family=Montserrat+Alternates:wght@500&family=Montserrat:wght@400&family=Siemreap&display=swap');
+
+/* Main background and container styles */
+body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Siemreap', 'Montserrat', sans-serif;
+  background-color: #393939;
+  color: #FBFFFA;
+  min-height: 100vh;
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* Gradient overlays to match the dashboard style */
+body::before {
+  content: "";
+  position: absolute;
+  top: 10%;  
+  left: 10%;
+  width: 30%; 
+  height: 20%; 
+  background: radial-gradient(circle, #457B9D, transparent);
+  filter: blur(70px); 
+  transform: translate(-50%, -70%);
+  opacity: 0.6;
+  z-index: -1;
+}
+
+body::after {
+  content: "";
+  position: absolute;
+  top: 5%;  
+  right: 5%; 
+  width: 40%; 
+  height: 30%; 
+  background: radial-gradient(circle, #3381F0, transparent);
+  filter: blur(70px); 
+  transform: translate(30%, -60%);
+  opacity: 0.5;
+  z-index: -1;
+}
+
+/* Additional gradient overlays */
+.bottom-left-ellipse {
+  position: fixed;
+  bottom: 0; 
+  left: 15%;  
+  width: 35%; 
+  height: 25%; 
+  background: radial-gradient(circle, #E63946, transparent);
+  filter: blur(90px); 
+  transform: translate(-70%, -50%);
+  opacity: 0.6;
+  z-index: -1;
+  pointer-events: none;
+}
+
+.bottom-right-ellipse {
+  position: fixed;
+  bottom: 10%; 
+  right: 10%;  
+  width: 25%; 
+  height: 20%;
+  background: radial-gradient(circle, #A8DADC, transparent);
+  filter: blur(90px); 
+  transform: translate(80%, -20%);
+  opacity: 0.7;
+  z-index: -1;
+  pointer-events: none;
+}
+
+/* New red gradient elements at the bottom */
+.bottom-center-ellipse {
+  position: fixed;
+  bottom: 5%; 
+  left: 50%;  
+  width: 40%; 
+  height: 30%; 
+  background: radial-gradient(circle, #E63946, transparent);
+  filter: blur(80px); 
+  transform: translate(-50%, 0);
+  opacity: 0.5;
+  z-index: -1;
+  pointer-events: none;
+}
+
+.bottom-right-red-ellipse {
+  position: fixed;
+  bottom: 15%; 
+  right: 25%;  
+  width: 30%; 
+  height: 25%;
+  background: radial-gradient(circle, #FF5C5C, transparent);
+  filter: blur(70px); 
+  transform: translate(20%, 30%);
+  opacity: 0.4;
+  z-index: -1;
+  pointer-events: none;
+}
+
+.subscription-details {
+  max-width: 800px;
+  margin: 2rem auto;
+  padding: 2rem;
+  background-color: rgba(30, 30, 30, 0.7);
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  position: relative;
+  z-index: 1;
+}
+
+/* Headings */
+h2, h3 {
+  color: #fff;
+  margin-bottom: 1.5rem;
+  font-weight: 600;
+  font-family: 'Siemreap', sans-serif;
+}
+
+h2 {
+  font-size: 1.8rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding-bottom: 0.75rem;
+  text-align: center;
+}
+
+h3 {
+  font-size: 1.4rem;
+  margin-top: 2rem;
+  color: #A8DADC;
+}
+
+/* Text and paragraphs */
+p {
+  margin-bottom: 0.75rem;
+  line-height: 1.6;
+}
+
+strong {
+  color: #fff;
+  font-weight: 600;
+}
+
+/* Form elements */
+label {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: #FBFFFA;
+  font-weight: 500;
+  font-family: 'Siemreap', sans-serif;
+  font-size: 17px;
+  margin-left: 10px;
+}
+
+select {
+  width: 100%;
+  padding: 8px 15px;
+  margin-bottom: 1.25rem;
+  background: none;
+  border: 1px solid #DEDBDB;
+  border-radius: 20px;
+  color: #FBFFFA;
+  font-size: 16px;
+  font-family: 'Siemreap', sans-serif;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23FBFFFA'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 15px center;
+  background-size: 16px;
+  padding-right: 30px;
+}
+
+select:focus {
+  outline: none;
+  border-color: #3381F0;
+}
+
+select option {
+  background-color: #383838;
+  color: #fff;
+}
+
+button {
+  background-color: #DEDBDB;
+  color: #000;
+  border: none;
+  padding: 8px 20px;
+  font-size: 16px;
+  font-family: 'Siemreap', sans-serif;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  margin-top: 1rem;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+  width: 180px;
+}
+
+button:hover {
+  background-color: #ccc;
+}
+
+button:disabled {
+  background-color: #4a5568;
+  color: #a0aec0;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+/* Error message */
+.error {
+  color: #E63946;
+  background-color: rgba(230, 57, 70, 0.1);
+  padding: 0.75rem;
+  border-radius: 8px;
+  margin: 1rem 0;
+  border-left: 3px solid #E63946;
+  font-family: 'Siemreap', sans-serif;
+}
+
+/* Prediction result box */
+.prediction-box {
+  margin-top: 2rem;
+  padding: 1.5rem;
+  background-color: rgba(74, 74, 74, 0.7);
+  border-radius: 8px;
+  border: 1px solid rgba(168, 218, 220, 0.3);
+}
+
+.prediction-box h3 {
+  margin-top: 0;
+  color: #A8DADC;
+}
+
+.prediction-box p {
+  font-size: 1.1rem;
+  color: #fff;
+  font-family: 'Siemreap', sans-serif;
+}
+
+/* User info section */
+.subscription-details > h3:nth-of-type(1) {
+  margin-top: 1.5rem;
+  color: #A8DADC;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .subscription-details {
+    margin: 1rem;
+    padding: 1.5rem;
+  }
+  
+  h2 {
+    font-size: 1.5rem;
+  }
+  
+  h3 {
+    font-size: 1.2rem;
+  }
+}

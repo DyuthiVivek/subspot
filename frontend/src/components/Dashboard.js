@@ -268,7 +268,7 @@ function Dashboard() {
               Reminders
             </button>
           </div>
-          <div className="subscription-list">
+          {/* <div className="subscription-list">
             {showSubscriptions ? (
               <>
                 {subscriptions.map((subscription) => (
@@ -312,7 +312,52 @@ function Dashboard() {
                 ))}
               </div>
             )}
+          </div> */}
+          <div className="subscription-list">
+            {showSubscriptions ? (
+              <>
+                {subscriptions.map((subscription) => (
+                  <Link
+                    to={`/subscription/${subscription.id}`}
+                    state={{ user: userInfo, subscription }}
+                    className="subscription-item"
+                    key={subscription.id}
+                  >
+                    <div className="subscription-logo">
+                      {subscription.logo && (
+                        <img src={subscription.logo} alt={`${subscription.name} Logo`} style={{ width: '32px', height: '32px' }} />
+                      )}
+                    </div>
+                    <div className="subscription-name">{subscription.name}</div>
+                    <div className="subscription-cost">Rs. {subscription.cost}</div>
+                  </Link>
+                ))}
+                <button className="add-subscription-button" onClick={openAddSubscriptionModal}>
+                  <FontAwesomeIcon icon={faPlus} /> Add Subscription
+                </button>
+              </>
+            ) : (
+              <div className="reminder-list">
+                {reminders.map((reminder) => (
+                  <div className="reminder-item" key={reminder.id}>
+                    <div className="reminder-date">
+                      <span className="reminder-month">{reminder.end_date?.split(' ')[0]}</span>
+                      <span className="reminder-day">{reminder.end_date?.split(' ')[1]}</span>
+                    </div>
+                    <div className="reminder-name">{reminder.name}</div>
+                    <div className="reminder-cost">Rs. {reminder.cost}</div>
+                    <button
+                      className="done-button"
+                      onClick={() => handleMarkReminderDone(reminder.id)}
+                    >
+                      Done
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
+
         </section>
 
         {isAddSubscriptionModalOpen && (
