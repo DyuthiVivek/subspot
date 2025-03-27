@@ -38,8 +38,6 @@ class SignUp(View):
         username = data.get("username")
         password = data.get("password")
         email = data.get("email")
-        phone_no = data.get("phone_no")
-        age = data.get("age")
 
         if User.objects.filter(username=username).exists():
             return JsonResponse({"message": "username taken"}, status=400)
@@ -48,12 +46,20 @@ class SignUp(View):
             username=username, 
             password=password, 
             email=email, 
-            name=name, 
-            phone_no=phone_no,
-            age=age
+            name=name
         )
         if user:
             login(request, user)
             return JsonResponse({"message": "signup successful"})
         else:
             return JsonResponse({"message": "signup failed"}, status=400)
+        
+@method_decorator(csrf_exempt, name='dispatch')
+class UserInfo(View):
+    def get(self, request):
+        if request.user.is_authenticated:
+            return JsonResponse({
+                'username': request.user.username,
+                'email': request.user.email
+            })
+        return JsonResponse({'message': 'Not authenticated'}, status=401)

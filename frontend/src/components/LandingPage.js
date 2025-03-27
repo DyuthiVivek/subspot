@@ -3,40 +3,99 @@ import './LandingPage.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPhone, faEnvelope, faTimes } from '@fortawesome/free-solid-svg-icons';
 import { useNavigate } from 'react-router-dom';
-import Dashboard from './Dashboard';
 
 function LandingPage() {
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [isSignupModalOpen, setIsSignupModalOpen] = useState(false);
+  const [loginUsername, setLoginUsername] = useState('');
+  const [loginPassword, setLoginPassword] = useState('');
+  const [signupName, setSignupName] = useState('');
+  const [signupEmail, setSignupEmail] = useState('');
+  const [signupUsername, setSignupUsername] = useState('');
+  const [signupPassword, setSignupPassword] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
+
   const navigate = useNavigate();
+  const API_BASE_URL = 'http://localhost:8000/subspot/';
 
-  const openLoginModal = () => {
-    setIsLoginModalOpen(true);
-  };
-
+  const openLoginModal = () => setIsLoginModalOpen(true);
   const closeLoginModal = () => {
     setIsLoginModalOpen(false);
+    setErrorMessage('');
+    setLoginUsername('');
+    setLoginPassword('');
   };
 
-  const openSignupModal = () => {
-    setIsSignupModalOpen(true);
-  };
-
+  const openSignupModal = () => setIsSignupModalOpen(true);
   const closeSignupModal = () => {
     setIsSignupModalOpen(false);
+    setErrorMessage('');
+    setSignupName('');
+    setSignupEmail('');
+    setSignupUsername('');
+    setSignupPassword('');
   };
-  const handleLogin = () => {
-    // auth
-    closeLoginModal();
-    navigate('/dashboard');
+
+  const handleLogin = (e) => {
+    e.preventDefault();
+    fetch(`${API_BASE_URL}auth/login/`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({
+        username: loginUsername,
+        password: loginPassword,
+      }),
+      credentials: 'include',
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.message === 'login successful') {
+          closeLoginModal();
+          navigate('/dashboard');
+        } else {
+          setErrorMessage(data.message || 'Login failed');
+        }
+      })
+      .catch((err) => {
+        console.error('Login error:', err);
+        setErrorMessage('An error occurred during login');
+      });
   };
+
+  const handleSignup = (e) => {
+    e.preventDefault();
+    fetch(`${API_BASE_URL}auth/signup/`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({
+        name: signupName,
+        username: signupUsername,
+        password: signupPassword,
+        email: signupEmail,
+      }),
+      credentials: 'include',
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.message === 'signup successful') {
+          closeSignupModal();
+          navigate('/dashboard');
+        } else {
+          setErrorMessage(data.message || 'Signup failed');
+        }
+      })
+      .catch((err) => {
+        console.error('Signup error:', err);
+        setErrorMessage('An error occurred during signup');
+      });
+  };
+
   return (
     <div className="App">
       <header className="App-header">
         <div className="Navbar">
           <div className="Logo">SubSpot</div>
           <div className="NavLinks">
-            
             <a href="#services">Services</a>
             <a href="#contact">Contact</a>
             <a href="#" onClick={openLoginModal}>Log In</a>
@@ -56,9 +115,9 @@ function LandingPage() {
         <div className="bottom-right-ellipse"></div>
       </header>
 
-      <section id="services"className="OurServicesSection">
+      <section id="services" className="OurServicesSection">
         <h2>Our Services</h2>
-        <div  className="ServicesContainer">
+        <div className="ServicesContainer">
           <div className="ServiceCard">
             <h3>Subscription Tracking</h3>
             <p>
@@ -88,7 +147,6 @@ function LandingPage() {
         </div>
       </section>
 
-      {/* Contact Section */}
       <section id="contact" className="ContactSection">
         <div className="ContactInfo">
           <div>
@@ -100,7 +158,6 @@ function LandingPage() {
         </div>
       </section>
 
-      {/* Login Modal */}
       {isLoginModalOpen && (
         <div className="LoginModalOverlay">
           <div className="LoginModal">
@@ -108,20 +165,34 @@ function LandingPage() {
               <FontAwesomeIcon icon={faTimes} />
             </button>
             <h2>Log In</h2>
-            <div className="InputGroup">
-              <label>Username:</label>
-              <input type="text" placeholder="Enter username" />
-            </div>
-            <div className="InputGroup">
-              <label>Password:</label>
-              <input type="password" placeholder="Enter password" />
-            </div>
-            <button className="LoginButton">Log In</button>
+            {errorMessage && <p className="ErrorMessage">{errorMessage}</p>}
+            <form onSubmit={handleLogin}>
+              <div className="InputGroup">
+                <label>Username:</label>
+                <input
+                  type="text"
+                  placeholder="Enter username"
+                  value={loginUsername}
+                  onChange={(e) => setLoginUsername(e.target.value)}
+                  required
+                />
+              </div>
+              <div className="InputGroup">
+                <label>Password:</label>
+                <input
+                  type="password"
+                  placeholder="Enter password"
+                  value={loginPassword}
+                  onChange={(e) => setLoginPassword(e.target.value)}
+                  required
+                />
+              </div>
+              <button type="submit" className="LoginButton">Log In</button>
+            </form>
           </div>
         </div>
       )}
 
-      {/* Signup Modal */}
       {isSignupModalOpen && (
         <div className="LoginModalOverlay">
           <div className="LoginModal" data-modal-type="signup">
@@ -129,27 +200,55 @@ function LandingPage() {
               <FontAwesomeIcon icon={faTimes} />
             </button>
             <h2>Sign Up</h2>
-            <div className="InputGroup">
-              <label>Name:</label>
-              <input type="text" placeholder="Enter name" />
-            </div>
-            <div className="InputGroup">
-              <label>Email:</label>
-              <input type="email" placeholder="Enter email" />
-            </div>
-            <div className="InputGroup">
-              <label>Username:</label>
-              <input type="text" placeholder="Enter username" />
-            </div>
-            <div className="InputGroup">
-              <label>Password:</label>
-              <input type="password" placeholder="Enter password" />
-            </div>
-            <button className="LoginButton">Sign Up</button>
+            {errorMessage && <p className="ErrorMessage">{errorMessage}</p>}
+            <form onSubmit={handleSignup}>
+              <div className="InputGroup">
+                <label>Name:</label>
+                <input
+                  type="text"
+                  placeholder="Enter name"
+                  value={signupName}
+                  onChange={(e) => setSignupName(e.target.value)}
+                  required
+                />
+              </div>
+              <div className="InputGroup">
+                <label>Email:</label>
+                <input
+                  type="email"
+                  placeholder="Enter email"
+                  value={signupEmail}
+                  onChange={(e) => setSignupEmail(e.target.value)}
+                  required
+                />
+              </div>
+              <div className="InputGroup">
+                <label>Username:</label>
+                <input
+                  type="text"
+                  placeholder="Enter username"
+                  value={signupUsername}
+                  onChange={(e) => setSignupUsername(e.target.value)}
+                  required
+                />
+              </div>
+              <div className="InputGroup">
+                <label>Password:</label>
+                <input
+                  type="password"
+                  placeholder="Enter password"
+                  value={signupPassword}
+                  onChange={(e) => setSignupPassword(e.target.value)}
+                  required
+                />
+              </div>
+              <button type="submit" className="LoginButton">Sign Up</button>
+            </form>
           </div>
         </div>
       )}
     </div>
   );
 }
+
 export default LandingPage;

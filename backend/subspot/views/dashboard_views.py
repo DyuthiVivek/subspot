@@ -75,14 +75,23 @@ class SubscriptionsView(View):
 
 class UserExpensesView(View):
     def get(self, request):
-        # get expenses data for the last 12 months
+        # get expenses data accordig to range
+
+        range1 = request.GET.get('range', 'past_year')
 
         user = request.user
         today = timezone.now().date()
         current_month = today.month
         current_year = today.year
-        months = 12
         
+        if range1 == 'last_month':
+            months = 1
+        elif range1 == 'last_6_months':
+            months = 6
+        else:
+            months = 12
+
+
         expenses_data = []
         months_list = []
         bar_heights = []
@@ -110,7 +119,7 @@ class UserExpensesView(View):
                     owner=user,
                     renew_date__month=month_date.month,
                     renew_date__year=month_date.year,
-                ),
+                )
                 
                 # add all subscription amounts
                 amount = sum(float(sub.amount) for sub in active_subs)
@@ -160,3 +169,39 @@ class SubscriptionRemindersView(View):
         return JsonResponse(list(reminders), safe=False)
         
         
+@method_decorator(csrf_exempt, name='dispatch')
+class MarkReminderDoneView(View):
+    def post(self, request):
+        # mark a reminder as done (update renew date)
+
+        try:
+            data = request.POST
+            subscription_id = data.get('subscription_id')
+            
+            try:
+                subscription = Subscription.objects.get(id=subscription_id, owner=request.user)
+            except Subscription.DoesNotExist:
+                return JsonResponse({'error': 'Subscription not found'}, status=404)
+            
+            # new renewal date = current renewal date + billing cycle
+            if subscription.billing_cycle == Subscription.BillingCycle.MONTHLY:
+                subscription.renew_date += relativedelta(months=1)
+            elif subscription.billing_cycle == Subscription.BillingCycle.QUARTERLY:
+                subscription.renew_date += relativedelta(months=3)
+            elif subscription.billing_cycle == Subscription.BillingCycle.YEARLY:
+                subscription.renew_date += relativedelta(years=1)
+            else:
+                subscription.renew_date += relativedelta(months=1)
+            
+
+            subscription.save()
+            
+            return JsonResponse({
+                'success': True,
+                'id': subscription.id,
+                'name': subscription.service_name,
+                'next_renew_date': subscription.renew_date.strftime('%b %d, %Y')
+            }, status=200)
+            
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
