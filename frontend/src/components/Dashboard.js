@@ -3,6 +3,7 @@ import './Dashboard.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCircleUser, faPlus, faTrash, faTimes } from '@fortawesome/free-solid-svg-icons';
 import { useNavigate, Link } from 'react-router-dom';
+import ChatIcon from './ChatIcon'; 
 
 function Dashboard() {
   const navigate = useNavigate();
@@ -35,7 +36,7 @@ function Dashboard() {
         if (data) {
           setUserInfo({ username: data.username, email: data.email });
         }
-      })
+      })  
       .catch(err => console.error('Error fetching user info:', err));
 
     fetch(`${API_BASE_URL}subscriptions/`, { credentials: 'include' })
