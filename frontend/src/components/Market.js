@@ -40,6 +40,38 @@ function Market() {
   // Use navigate hook
   const navigate = useNavigate();  // <-- used for programmatic navigation
 
+  //user dropdown
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [userInfo, setUserInfo] = useState({ username: '', email: '' });
+  const API_BASE_URL = 'http://localhost:8000/subspot/';
+
+  useEffect(() => {
+    fetch(`${API_BASE_URL}auth/user/`, { credentials: 'include' })
+      .then(res => {
+        if (res.status === 401) {
+          navigate('/');
+          return Promise.reject('Not authenticated');
+        }
+        return res.json();
+      })
+      .then(data => setUserInfo({ username: data.username, email: data.email }))
+      .catch(err => console.error('Error fetching user info:', err));
+  }, [navigate]);
+
+  const handleLogout = () => {
+    fetch(`${API_BASE_URL}auth/logout/`, {
+      method: 'POST',
+      credentials: 'include',
+    })
+      .then(() => {
+        setIsDropdownOpen(false);
+        navigate('/');
+      })
+      .catch(err => console.error('Logout error:', err));
+  };
+
+  const toggleDropdown = () => setIsDropdownOpen(!isDropdownOpen);
+
   // Example icons
   const subscriptionIcons = {
     'Spotify Premium': 'https://img.icons8.com/fluency/48/spotify.png',
@@ -273,7 +305,14 @@ function Market() {
           <Link to="/market" className="nav-link active">Market</Link>
           <Link to="/friends" className="nav-link">Friends</Link>
           <div className="user-icon">
-            <FontAwesomeIcon icon={faCircleUser} />
+            <FontAwesomeIcon icon={faCircleUser} onClick={toggleDropdown} />
+            {isDropdownOpen && (
+              <div className="user-dropdown">
+                <p>Username: <span className="value">{userInfo.username}</span></p>
+                <p>Email: <span className="value">{userInfo.email}</span></p>
+                <button className="logout-button" onClick={handleLogout}>Logout</button>
+              </div>
+            )}
           </div>
           {/* ChatIcon added next to user icon */}
           <div style={{ marginLeft: '20px' }}>
