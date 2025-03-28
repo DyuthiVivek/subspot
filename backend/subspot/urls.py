@@ -19,5 +19,6 @@ urlpatterns = [
     path("sold-listings/", marketpage_views.UserSoldListingsView.as_view(), name="sold_listings"),
     path("prediction/", ml_prediction_views.PredictionView.as_view(), name="prediction"),
     path("mark-paid/", dashboard_views.MarkReminderDoneView.as_view(), name="mark_paid"),
-    
+    path("edit-listing-price/", marketpage_views.EditListingPrice.as_view(), name="edit_listing_price"),
+    path("unsold-expired-listings/", marketpage_views.UserUnSoldExpiredListingsView.as_view(), name="unsold_expired_listings"),
 ]

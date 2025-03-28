@@ -18,14 +18,15 @@ class AvailableListingsView(View):
             subscription = listing.subscription
 
             delta = relativedelta(subscription.renew_date, timezone.now().date())
-            duration_parts = []
-            if delta.years > 0:
-                duration_parts.append(f"{delta.years} years")
-            if delta.months > 0:
-                duration_parts.append(f"{delta.months} months")
-            if delta.days > 0:
-                duration_parts.append(f"{delta.days} days")
-            listing.duration = " ".join(duration_parts)
+            if(listing.duration != "Expired"):
+                duration_parts = []
+                if delta.years > 0:
+                    duration_parts.append(f"{delta.years} years")
+                if delta.months > 0:
+                    duration_parts.append(f"{delta.months} months")
+                if delta.days > 0:
+                    duration_parts.append(f"{delta.days} days")
+                listing.duration = " ".join(duration_parts)
 
             if delta.years <= 0 and delta.months <= 0 and delta.days <= 0:
                 listing.duration = "Expired"
@@ -82,28 +83,66 @@ class UserUnSoldListingsView(LoginRequiredMixin, View):
         for listing in user_listings:
             subscription = listing.subscription
             delta = relativedelta(subscription.renew_date, timezone.now().date())
-            duration_parts = []
-            if delta.years > 0:
-                duration_parts.append(f"{delta.years} years")
-            if delta.months > 0:
-                duration_parts.append(f"{delta.months} months")
-            if delta.days > 0:
-                duration_parts.append(f"{delta.days} days")
-            listing.duration = " ".join(duration_parts)
+            if(listing.duration != "Expired"):
+                duration_parts = []
+                if delta.years > 0:
+                    duration_parts.append(f"{delta.years} years")
+                if delta.months > 0:
+                    duration_parts.append(f"{delta.months} months")
+                if delta.days > 0:
+                    duration_parts.append(f"{delta.days} days")
+                listing.duration = " ".join(duration_parts)
 
             if delta.years <= 0 and delta.months <= 0 and delta.days <= 0:
                 listing.duration = "Expired"
 
+            else:
+                listings_data.append({
+                    'id': listing.id,
+                    'seller_id': subscription.owner.id,
+                    'price': listing.price,
+                    'name': subscription.service_name,
+                    'duration': listing.duration,
+                    'is_sold': listing.is_sold,
+                    'logo': f"https://logo.clearbit.com/{subscription.service_name.split()[0].lower()}.com"
+                })
+
             listing.save()
-            listings_data.append({
-                'id': listing.id,
-                'seller_id': subscription.owner.id,
-                'price': listing.price,
-                'name': subscription.service_name,
-                'duration': listing.duration,
-                'is_sold': listing.is_sold,
-                'logo': f"https://logo.clearbit.com/{subscription.service_name.split()[0].lower()}.com"
-            })
+
+        return JsonResponse(listings_data, safe=False)
+    
+class UserUnSoldExpiredListingsView(LoginRequiredMixin, View):
+    def get(self, request):
+        user = request.user
+        user_listings = Listing.objects.filter(subscription__owner=user, is_sold=False).select_related('subscription')
+        listings_data = []
+
+        for listing in user_listings:
+            subscription = listing.subscription
+            delta = relativedelta(subscription.renew_date, timezone.now().date())
+            if(listing.duration != "Expired"):
+                duration_parts = []
+                if delta.years > 0:
+                    duration_parts.append(f"{delta.years} years")
+                if delta.months > 0:
+                    duration_parts.append(f"{delta.months} months")
+                if delta.days > 0:
+                    duration_parts.append(f"{delta.days} days")
+                listing.duration = " ".join(duration_parts)
+
+            if listing.duration == "Expired" or (delta.years <= 0 and delta.months <= 0 and delta.days <= 0):
+                listing.duration = "Expired"
+                listings_data.append({
+                    'id': listing.id,
+                    'seller_id': subscription.owner.id,
+                    'price': listing.price,
+                    'name': subscription.service_name,
+                    'duration': listing.duration,
+                    'is_sold': listing.is_sold,
+                    'logo': f"https://logo.clearbit.com/{subscription.service_name.split()[0].lower()}.com"
+                })
+
+            listing.save()
 
         return JsonResponse(listings_data, safe=False)
     
@@ -141,3 +180,18 @@ class UserSoldListingsView(LoginRequiredMixin, View):
             })
 
         return JsonResponse(listings_data, safe=False)
+    
+@method_decorator(csrf_exempt, name='dispatch')
+class EditListingPrice(LoginRequiredMixin, View):
+    def post(self, request):
+        data = request.POST
+        listing_id = data.get('listing_id')
+        new_price = data.get('new_price')
+
+        listing = Listing.objects.filter(id=listing_id, subscription__owner=request.user).first()
+        if listing:
+            listing.price = new_price
+            listing.save()
+            return JsonResponse({'message': 'Price updated successfully!'})
+        else:
+            return JsonResponse({'message': 'Listing not found!'}, status=404)
