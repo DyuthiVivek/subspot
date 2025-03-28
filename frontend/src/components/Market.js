@@ -5,6 +5,7 @@ import { faCircleUser, faSearch, faTrash } from '@fortawesome/free-solid-svg-ico
 import { Link, useNavigate } from 'react-router-dom';  
 import ChatIcon from './ChatIcon'; 
 
+
 function parseDurationToDays(durationStr) {
   switch (durationStr) {
     case '1 month':
@@ -70,71 +71,270 @@ function Market() {
       .catch(err => console.error('Logout error:', err));
   };
 
+
+
+
   const toggleDropdown = () => setIsDropdownOpen(!isDropdownOpen);
 
-  // Example icons
-  const subscriptionIcons = {
-    'Spotify Premium': 'https://img.icons8.com/fluency/48/spotify.png',
-    'Netflix': 'https://img.icons8.com/color/48/netflix-desktop-app.png',
-    'Amazon Prime': 'https://img.icons8.com/color/48/amazon.png',
-    'YouTube Premium': 'https://img.icons8.com/color/48/youtube-play.png'
+  // // Example icons
+  // const subscriptionIcons = {
+  //   'Spotify Premium': 'https://img.icons8.com/fluency/48/spotify.png',
+  //   'Netflix': 'https://img.icons8.com/color/48/netflix-desktop-app.png',
+  //   'Amazon Prime': 'https://img.icons8.com/color/48/amazon.png',
+  //   'YouTube Premium': 'https://img.icons8.com/color/48/youtube-play.png'
+  // };
+
+  // // Example user subscriptions (for the "Add to Sell" form)
+  // const [userSubscriptions] = useState([
+  //   { id: 1, name: 'Spotify Premium', duration: '1 month' },
+  //   { id: 2, name: 'Netflix', duration: '2 months' },
+  //   { id: 3, name: 'Coursera', duration: '1 month' },
+  //   { id: 4, name: 'YouTube Premium', duration: '3 months' },
+  //   { id: 5, name: 'iCloud', duration: '1 month' }
+  // ]);
+
+  // // Sample items in the Buy tab
+  // const subscriptionItems = [
+  //   { id: 1, name: 'Spotify Premium', duration: '1 month', price: 149 },
+  //   { id: 2, name: 'Netflix', duration: '2 months', price: 299 },
+  //   { id: 3, name: 'Amazon Prime', duration: '1 month', price: 129 },
+  //   { id: 4, name: 'YouTube Premium', duration: '2 months', price: 249 },
+  // ];
+
+  // // Items currently for sale (Sell tab)
+  // const [sellItems, setSellItems] = useState([
+  //   {
+  //     id: 101,
+  //     name: 'YouTube Premium',
+  //     duration: '2 months ago',
+  //     price: 599,
+  //     validUntil: null,
+  //   },
+  //   {
+  //     id: 102,
+  //     name: 'Spotify Premium',
+  //     duration: '1 month ago',
+  //     price: 199,
+  //     validUntil: null,
+  //   },
+  // ]);
+
+  const [subscriptionItems, setSubscriptionItems] = useState([]);
+  const [sellItems, setSellItems] = useState([]);
+  const [soldItems, setSoldItems] = useState([]);
+  const [expiredItems, setExpiredItems] = useState([]);
+  const [userSubscriptions, setUserSubscriptions] = useState([]);
+  
+  // Fetch data when component mounts and tab changes
+  useEffect(() => {
+    if (activeTab === 'buy') {
+      fetchAvailableListings();
+    } else if (activeTab === 'sell') {
+      fetchUserUnsoldListings();
+    } else if (activeTab === 'expired') {
+      fetchExpiredListings();
+    }
+  }, [activeTab]);
+
+  // Also fetch user's subscriptions for the sell form
+  useEffect(() => {
+    fetch(`${API_BASE_URL}subscriptions/`, { credentials: 'include' })
+      .then(res => res.json())
+      .then(data => {
+        // Transform subscription data for the dropdown
+        const formattedSubs = data.map(sub => ({
+          id: sub.id,
+          name: sub.name,
+          duration: sub.billing_cycle === 'monthly' ? '1 month' : 
+                    sub.billing_cycle === 'quarterly' ? '3 months' : '1 year'
+        }));
+        setUserSubscriptions(formattedSubs);
+      })
+      .catch(err => console.error('Error fetching user subscriptions:', err));
+  }, []);
+
+
+  // Fetch available listings for Buy tab
+  const fetchAvailableListings = () => {
+    fetch(`${API_BASE_URL}listings/`, { credentials: 'include' })
+      .then(res => res.json())
+      .then(data => {
+        setSubscriptionItems(data);
+      })
+      .catch(err => console.error('Error fetching listings:', err));
   };
 
-  // Example user subscriptions (for the "Add to Sell" form)
-  const [userSubscriptions] = useState([
-    { id: 1, name: 'Spotify Premium', duration: '1 month' },
-    { id: 2, name: 'Netflix', duration: '2 months' },
-    { id: 3, name: 'Coursera', duration: '1 month' },
-    { id: 4, name: 'YouTube Premium', duration: '3 months' },
-    { id: 5, name: 'iCloud', duration: '1 month' }
-  ]);
+  // Fetch user's unsold listings for Sell tab
+  const fetchUserUnsoldListings = () => {
+    fetch(`${API_BASE_URL}unsold-listings/`, { credentials: 'include' })
+      .then(res => res.json())
+      .then(data => {
+        setSellItems(data);
+      })
+      .catch(err => console.error('Error fetching unsold listings:', err));
 
-  // Sample items in the Buy tab
-  const subscriptionItems = [
-    { id: 1, name: 'Spotify Premium', duration: '1 month', price: 149 },
-    { id: 2, name: 'Netflix', duration: '2 months', price: 299 },
-    { id: 3, name: 'Amazon Prime', duration: '1 month', price: 129 },
-    { id: 4, name: 'YouTube Premium', duration: '2 months', price: 249 },
-  ];
+    // Also fetch sold listings for history
+    fetch(`${API_BASE_URL}sold-listings/`, { credentials: 'include' })
+      .then(res => res.json())
+      .then(data => {
+        setSoldItems(data);
+      })
+      .catch(err => console.error('Error fetching sold listings:', err));
+  };
 
-  // Items currently for sale (Sell tab)
-  const [sellItems, setSellItems] = useState([
-    {
-      id: 101,
-      name: 'YouTube Premium',
-      duration: '2 months ago',
-      price: 599,
-      validUntil: null,
-    },
-    {
-      id: 102,
-      name: 'Spotify Premium',
-      duration: '1 month ago',
-      price: 199,
-      validUntil: null,
-    },
-  ]);
+  // Fetch expired listings
+  const fetchExpiredListings = () => {
+    fetch(`${API_BASE_URL}unsold-expired-listings/`, { credentials: 'include' })
+      .then(res => res.json())
+      .then(data => {
+        setExpiredItems(data);
+      })
+      .catch(err => console.error('Error fetching expired listings:', err));
+  };
 
-  // Items that have been sold
-  const [soldItems, setSoldItems] = useState([]);
+  // Mark subscription as sold
+  const handleSold = (id) => {
+    const formData = new FormData();
+    formData.append('listing_id', id);
 
-  // Items that expired
-  const [expiredItems, setExpiredItems] = useState([
-    {
-      id: 201,
-      name: 'Amazon Prime',
-      duration: 'Expired last month',
-      price: 129,
-      validUntil: null,
-    },
-    {
-      id: 202,
-      name: 'Netflix',
-      duration: 'Expired 2 weeks ago',
-      price: 199,
-      validUntil: null,
-    },
-  ]);
+    fetch(`${API_BASE_URL}mark-sold/`, {
+      method: 'POST',
+      credentials: 'include',
+      body: formData
+    })
+      .then(res => res.json())
+      .then(data => {
+        if (data.message) {
+          // Remove from sell items and refresh listings
+          fetchUserUnsoldListings();
+        }
+      })
+      .catch(err => console.error('Error marking as sold:', err));
+  };
+
+  // Save the updated price
+  const handleSavePrice = (id) => {
+    const formData = new FormData();
+    formData.append('listing_id', id);
+    formData.append('new_price', tempPrice);
+
+    fetch(`${API_BASE_URL}edit-listing-price/`, {
+      method: 'POST',
+      credentials: 'include',
+      body: formData
+    })
+      .then(res => res.json())
+      .then(data => {
+        if (data.message) {
+          // Update the UI
+          setSellItems(prev =>
+            prev.map(item => {
+              if (item.id === id) {
+                return { ...item, price: parseInt(tempPrice, 10) || item.price };
+              }
+              return item;
+            })
+          );
+        }
+      })
+      .catch(err => console.error('Error updating price:', err));
+
+    setEditingPriceId(null);
+    setTempPrice('');
+  };
+
+  // Delete a sell item
+  const handleDeleteSellItem = (id) => {
+    fetch(`${API_BASE_URL}listings/`, {
+      method: 'DELETE',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ listing_id: id })
+    })
+      .then(res => res.json())
+      .then(data => {
+        if (data.message) {
+          // Remove from UI
+          setSellItems(prev => prev.filter(item => item.id !== id));
+        }
+      })
+      .catch(err => console.error('Error deleting listing:', err));
+  };
+
+  
+
+
+  // Handle subscription selection in Sell form
+const handleSelectedSubscriptionChange = (e) => {
+  const selectedId = e.target.value;
+  setSelectedDashboardSub(selectedId);
+};
+
+// Submit the Sell form
+const handleSellFormSubmit = (e) => {
+  e.preventDefault();
+  if (!selectedDashboardSub || !sellPrice) {
+    alert("Please select a subscription and enter a selling price.");
+    return;
+  }
+
+  const urlEncodedData = new URLSearchParams();
+  urlEncodedData.append('subscription_id', selectedDashboardSub);
+  urlEncodedData.append('price', sellPrice);
+
+  fetch(`${API_BASE_URL}listings/`, {
+    method: 'POST',
+    credentials: 'include',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: urlEncodedData.toString()
+  })
+    .then(res => {
+      if (!res.ok) {
+        throw new Error(`HTTP error! status: ${res.status}`);
+      }
+      return res.json();
+    })
+    .then(data => {
+      if (data.message && data.message.includes('successfully')) {
+        // Refresh the listings
+        fetchUserUnsoldListings();
+        // Reset form
+        setSelectedDashboardSub('');
+        setSellPrice('');
+        setShowSellForm(false);
+      } else {
+        alert(data.message || 'Failed to create listing');
+      }
+    })
+    .catch(err => {
+      console.error('Error creating listing:', err);
+      alert('An error occurred while creating the listing.');
+    });
+};
+
+
+
+
+
+
+
+  // // Items that expired
+  // const [expiredItems, setExpiredItems] = useState([
+  //   {
+  //     id: 201,
+  //     name: 'Amazon Prime',
+  //     price: 129,
+  //     validUntil: null,
+  //   },
+  //   {
+  //     id: 202,
+  //     name: 'Netflix',
+  //     price: 199,
+  //     validUntil: null,
+  //   },
+  // ]);
 
   // For the Sell form
   const [selectedDashboardSub, setSelectedDashboardSub] = useState('');
@@ -148,20 +348,6 @@ function Market() {
   const handlePriceEdit = (id, currentPrice) => {
     setEditingPriceId(id);
     setTempPrice(String(currentPrice)); // keep it as string for input
-  };
-
-  // Save the updated price
-  const handleSavePrice = (id) => {
-    setSellItems((prev) =>
-      prev.map((item) => {
-        if (item.id === id) {
-          return { ...item, price: parseInt(tempPrice, 10) || item.price };
-        }
-        return item;
-      })
-    );
-    setEditingPriceId(null);
-    setTempPrice('');
   };
 
   // Cancel price editing
@@ -185,19 +371,6 @@ function Market() {
     }
   };
 
-  // Mark subscription as sold
-  const handleSold = (id) => {
-    const itemToSell = sellItems.find((item) => item.id === id);
-    if (itemToSell) {
-      setSellItems((prev) => prev.filter((it) => it.id !== id));
-      setSoldItems((prevSold) => [...prevSold, itemToSell]);
-    }
-  };
-
-  // Delete a sell item
-  const handleDeleteSellItem = (id) => {
-    setSellItems((prev) => prev.filter((item) => item.id !== id));
-  };
 
   // Toggle the sell form
   const handleAddSubscriptionClick = () => {
@@ -211,44 +384,7 @@ function Market() {
     setShowSellForm(false);
   };
 
-  // Handle subscription selection in Sell form
-  const handleSelectedSubscriptionChange = (e) => {
-    setSelectedDashboardSub(e.target.value);
-  };
-
-  // Submit the Sell form
-  const handleSellFormSubmit = (e) => {
-    e.preventDefault();
-    if (!selectedDashboardSub || !sellPrice) {
-      alert("Please select a subscription and enter a selling price.");
-      return;
-    }
-    const chosenSub = userSubscriptions.find(
-      (sub) => sub.name === selectedDashboardSub
-    );
-    if (!chosenSub) {
-      alert("Invalid subscription selected.");
-      return;
-    }
-
-    const now = Date.now();
-    const days = parseDurationToDays(chosenSub.duration);
-    const validUntil = now + days * 24 * 60 * 60 * 1000;
-
-    const newItem = {
-      id: Date.now(),
-      name: chosenSub.name,
-      duration: chosenSub.duration,
-      price: parseInt(sellPrice, 10) || 0,
-      validUntil,
-    };
-
-    setSellItems((prev) => [...prev, newItem]);
-    setSelectedDashboardSub('');
-    setSellPrice('');
-    setShowSellForm(false);
-  };
-
+  
   // Handle "Buy" button
   const handleBuyClick = (item) => {
     setSelectedItem(item);
@@ -268,34 +404,7 @@ function Market() {
     handleCloseBuyModal();
   };
 
-  // Auto-expire logic
-  useEffect(() => {
-    const interval = setInterval(() => {
-      autoExpireCheck();
-    }, 60000);
-    autoExpireCheck(); // immediate check
-    return () => clearInterval(interval);
-  }, []);
-
-  const autoExpireCheck = () => {
-    const now = Date.now();
-    setSellItems((prevSell) => {
-      const updatedSell = [];
-      const newlyExpired = [];
-      for (const item of prevSell) {
-        if (item.validUntil && now > item.validUntil) {
-          newlyExpired.push(item);
-        } else {
-          updatedSell.push(item);
-        }
-      }
-      if (newlyExpired.length > 0) {
-        setExpiredItems((prevExp) => [...prevExp, ...newlyExpired]);
-      }
-      return updatedSell;
-    });
-  };
-
+  
   return (
     <div className="market-container">
       {/* Header / Navbar */}
@@ -361,36 +470,44 @@ function Market() {
         {/* Buy Tab */}
         {activeTab === 'buy' && (
           <div className="buy-section">
-            {filteredItems.map((item) => (
-              <div className="subscription-item" key={item.id}>
-                <div className="subscription-left">
-                  <div className="subscription-icon-container">
-                    {subscriptionIcons[item.name] ? (
-                      <img
-                        src={subscriptionIcons[item.name]}
-                        alt={item.name}
-                        className="subscription-icon"
-                      />
-                    ) : (
-                      <div className="empty-icon-space"></div>
-                    )}
+            {filteredItems.length === 0 ? (
+              <p>No subscriptions are available for purchase.</p>
+            ) : (
+              filteredItems.map((item) => (
+                <div className="subscription-item" key={item.id}>
+                  <div className="subscription-left">
+                    <div className="subscription-icon-container">
+                      {item.logo ? (
+                        <img
+                          src={item.logo}
+                          alt={item.name}
+                          className="subscription-icon"
+                          onError={(e) => {
+                            e.target.onerror = null;
+                            e.target.src = "https://via.placeholder.com/48?text=" + item.name.charAt(0);
+                          }}
+                        />
+                      ) : (
+                        <div className="empty-icon-space"></div>
+                      )}
+                    </div>
+                    <div className="subscription-text">
+                      <div className="subscription-name">{item.name}</div>
+                      <div className="subscription-duration">{item.duration}</div>
+                    </div>
                   </div>
-                  <div className="subscription-text">
-                    <div className="subscription-name">{item.name}</div>
-                    <div className="subscription-duration">{item.duration}</div>
+                  <div className="subscription-right">
+                    <span className="subscription-price">Rs. {item.price}</span>
+                    <button
+                      className="action-button"
+                      onClick={() => handleBuyClick(item)}
+                    >
+                      Buy
+                    </button>
                   </div>
                 </div>
-                <div className="subscription-right">
-                  <span className="subscription-price">Rs. {item.price}</span>
-                  <button
-                    className="action-button"
-                    onClick={() => handleBuyClick(item)}
-                  >
-                    Buy
-                  </button>
-                </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
         )}
 
@@ -403,11 +520,15 @@ function Market() {
                 <div className="subscription-item" key={item.id}>
                   <div className="subscription-left">
                     <div className="subscription-icon-container">
-                      {subscriptionIcons[item.name] ? (
+                      {item.logo ? (
                         <img
-                          src={subscriptionIcons[item.name]}
+                          src={item.logo}
                           alt={item.name}
                           className="subscription-icon"
+                          onError={(e) => {
+                            e.target.onerror = null;
+                            e.target.src = "https://via.placeholder.com/48?text=" + item.name.charAt(0);
+                          }}
                         />
                       ) : (
                         <div className="empty-icon-space"></div>
@@ -506,7 +627,7 @@ function Market() {
                   >
                     <option value="" disabled>Select from your subscriptions</option>
                     {userSubscriptions.map((sub) => (
-                      <option key={sub.id} value={sub.name}>
+                      <option key={sub.id} value={sub.id}>
                         {sub.name}
                       </option>
                     ))}
@@ -540,11 +661,15 @@ function Market() {
                     <div className="subscription-item" key={item.id}>
                       <div className="subscription-left">
                         <div className="subscription-icon-container">
-                          {subscriptionIcons[item.name] ? (
+                          {item.logo ? (
                             <img
-                              src={subscriptionIcons[item.name]}
+                              src={item.logo}
                               alt={item.name}
                               className="subscription-icon"
+                              onError={(e) => {
+                                e.target.onerror = null;
+                                e.target.src = "https://via.placeholder.com/48?text=" + item.name.charAt(0);
+                              }}
                             />
                           ) : (
                             <div className="empty-icon-space"></div>
@@ -576,11 +701,15 @@ function Market() {
                 <div className="subscription-item" key={item.id}>
                   <div className="subscription-left">
                     <div className="subscription-icon-container">
-                      {subscriptionIcons[item.name] ? (
+                      {item.logo ? (
                         <img
-                          src={subscriptionIcons[item.name]}
+                          src={item.logo}
                           alt={item.name}
                           className="subscription-icon"
+                          onError={(e) => {
+                            e.target.onerror = null;
+                            e.target.src = "https://via.placeholder.com/48?text=" + item.name.charAt(0);
+                          }}
                         />
                       ) : (
                         <div className="empty-icon-space"></div>
@@ -588,7 +717,6 @@ function Market() {
                     </div>
                     <div className="subscription-text">
                       <div className="subscription-name">{item.name}</div>
-                      <div className="subscription-duration">{item.duration}</div>
                     </div>
                   </div>
                   <div className="subscription-right">
