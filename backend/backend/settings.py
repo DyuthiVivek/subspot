@@ -26,7 +26,7 @@ SECRET_KEY = 'django-insecure-69o(0mfht=a69+)q_$iy39ngug+_dokr7z=l5cxqemnhgu@5di
 DEBUG = False
 
 # ALLOWED_HOSTS = []
-ALLOWED_HOSTS = ['https://subspot.onrender.com', 'localhost']
+ALLOWED_HOSTS = ['subspot.onrender.com', 'subspot-smoky.vercel.app', 'localhost']
 
 
 # Application definition
@@ -53,7 +53,11 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOWED_ORIGINS = [
+    "https://subspot-smoky.vercel.app",
+    "https://subspot.onrender.com",
+]
+# CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_CREDENTIALS = True
 ROOT_URLCONF = 'backend.urls'
 
