@@ -89,7 +89,20 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 #         'PORT': '3306',  # Default MySQL port
 #     }
 # }
-import os
+import os, tempfile, base64
+from dotenv import load_dotenv
+    
+load_dotenv()
+
+db_ssl_cert_base64 = os.getenv("DB_SSL_CERT_BASE64", "")
+
+# Decode and store it in a temporary file
+if db_ssl_cert_base64:
+    with tempfile.NamedTemporaryFile(delete=False) as temp_cert:
+        temp_cert.write(base64.b64decode(db_ssl_cert_base64))
+        temp_cert_path = temp_cert.name
+else:
+    temp_cert_path = None
 
 DATABASES = {
     'default': {
@@ -99,9 +112,12 @@ DATABASES = {
         'PASSWORD': os.getenv("DB_PASSWORD"),
         'HOST': os.getenv("DB_HOST"),  # Aiven MySQL host
         'PORT': os.getenv("DB_PORT"),
-        # 'OPTIONS': {
-        #     'ssl': {'ca': '/etc/ssl/certs/ca-certificates.crt'}  # Aiven requires SSL
-        # }
+        'OPTIONS': {
+            'ssl': {'ssl-mode': 'DISABLED'}
+        #     'ssl': {'ca': temp_cert_path} if temp_cert_path else {}
+        }
+        
+
     }
 }
 
