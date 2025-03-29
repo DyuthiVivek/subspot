@@ -3,6 +3,8 @@ import { useLocation, useParams, useNavigate } from 'react-router-dom';
 import './SubscriptionDetails.css';
 
 const API_BASE_URL = 'https://subspot.onrender.com/subspot/';
+//const API_BASE_URL = 'https://localhost:8000/subspot/';
+
 
 function SubscriptionDetails() {
   const { id } = useParams();
@@ -25,7 +27,8 @@ function SubscriptionDetails() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    fetch(`${API_BASE_URL}auth/user/`, { credentials: 'include' })
+    fetch(`${API_BASE_URL}auth/user/`, { credentials: 'include',       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    })
       .then((res) => {
         if (res.status === 401) {
           navigate('/'); 

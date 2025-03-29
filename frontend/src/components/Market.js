@@ -45,9 +45,11 @@ function Market() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [userInfo, setUserInfo] = useState({ username: '', email: '' });
   const API_BASE_URL = 'https://subspot.onrender.com/subspot/';
+  //const API_BASE_URL = 'https://localhost:8000/subspot/';
 
   useEffect(() => {
-    fetch(`${API_BASE_URL}auth/user/`, { credentials: 'include' })
+    fetch(`${API_BASE_URL}auth/user/`, { credentials: 'include', headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    })
       .then(res => {
         if (res.status === 401) {
           navigate('/');

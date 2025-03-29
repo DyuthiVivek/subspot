@@ -17,6 +17,7 @@ function LandingPage() {
 
   const navigate = useNavigate();
   const API_BASE_URL = 'https://subspot.onrender.com/subspot/';
+  //const API_BASE_URL = 'https://localhost:8000/subspot/';
 
   const openLoginModal = () => setIsLoginModalOpen(true);
   const closeLoginModal = () => {

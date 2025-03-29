@@ -19,12 +19,16 @@ function Dashboard() {
   const [reminders, setReminders] = useState([]);
   const [expenseData, setExpenseData] = useState({ months: [], barHeights: [] });
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [userInfo, setUserInfo] = useState({ username: '', email: '' });
+  const [userInfo, setUserInfo] = useState({ username: '', email: '', password: '' });
 
   const API_BASE_URL = 'https://subspot.onrender.com/subspot/';
 
+  // const API_BASE_URL = 'https://localhost:8000/subspot/';
+
   useEffect(() => {
-    fetch(`${API_BASE_URL}auth/user/`, { credentials: 'include' })
+    fetch(`${API_BASE_URL}auth/user/`, { credentials: 'include', headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+  },})
       .then(res => {
         if (res.status === 401) {
           navigate('/');
@@ -39,7 +43,7 @@ function Dashboard() {
       })  
       .catch(err => console.error('Error fetching user info:', err));
 
-    fetch(`${API_BASE_URL}subscriptions/`, { credentials: 'include' })
+    fetch(`${API_BASE_URL}subscriptions/`, { credentials: 'include', 'Content-Type': 'application/x-www-form-urlencoded' })
       .then(res => res.json())
       .then(data => {
         console.log('Subscriptions:', data);
@@ -47,7 +51,7 @@ function Dashboard() {
       })
       .catch(err => console.error('Error fetching subscriptions:', err));
 
-    fetch(`${API_BASE_URL}reminders/`, { credentials: 'include' })
+    fetch(`${API_BASE_URL}reminders/`, { credentials: 'include', 'Content-Type': 'application/x-www-form-urlencoded' })
       .then(res => res.json())
       .then(data => {
         console.log('Reminders:', data);
@@ -55,7 +59,7 @@ function Dashboard() {
       })
       .catch(err => console.error('Error fetching reminders:', err));
 
-    fetch(`${API_BASE_URL}expenses/?range=${expenseRange.toLowerCase().replace(' ', '_')}`, { credentials: 'include' })
+    fetch(`${API_BASE_URL}expenses/?range=${expenseRange.toLowerCase().replace(' ', '_')}`, { credentials: 'include', 'Content-Type': 'application/x-www-form-urlencoded' })
       .then(res => res.json())
       .then(data => {
         console.log('Expenses:', data);
@@ -75,7 +79,7 @@ function Dashboard() {
       .then(data => {
         if (data.success) {
           // Refresh reminders to reflect the updated renew_date
-          fetch(`${API_BASE_URL}reminders/`, { credentials: 'include' })
+          fetch(`${API_BASE_URL}reminders/`, { credentials: 'include','Content-Type': 'application/x-www-form-urlencoded' })
             .then(res => res.json())
             .then(reminderData => setReminders(reminderData))
             .catch(err => console.error('Error refreshing reminders:', err));
@@ -92,6 +96,7 @@ function Dashboard() {
     fetch(`${API_BASE_URL}subscriptions/${id}/`, {
       method: 'DELETE',
       credentials: 'include',
+      'Content-Type': 'application/x-www-form-urlencoded'
     })
       .then(() => {
         setSubscriptions(subscriptions.filter(sub => sub.id !== id));
@@ -119,7 +124,7 @@ function Dashboard() {
       .then(res => res.json())
       .then(data => {
         setSubscriptions([...subscriptions, data]);
-        fetch(`${API_BASE_URL}reminders/`, { credentials: 'include' })
+        fetch(`${API_BASE_URL}reminders/`, { credentials: 'include','Content-Type': 'application/x-www-form-urlencoded'})
           .then(res => res.json())
           .then(reminderData => {
             console.log('Updated Reminders:', reminderData);
@@ -139,6 +144,7 @@ function Dashboard() {
     fetch(`${API_BASE_URL}auth/logout/`, {
       method: 'POST',
       credentials: 'include',
+      'Content-Type': 'application/x-www-form-urlencoded'
     })
       .then(() => {
         setIsDropdownOpen(false);
@@ -189,7 +195,7 @@ function Dashboard() {
   const [isAddSubscriptionModalOpen, setIsAddSubscriptionModalOpen] = useState(false);
   const openAddSubscriptionModal = () => setIsAddSubscriptionModalOpen(true);
   const closeAddSubscriptionModal = () => setIsAddSubscriptionModalOpen(false);
-
+console.log('here')
   return (
     <div className="dashboard-container">
       <header className="dashboard-header">
