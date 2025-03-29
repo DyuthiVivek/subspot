@@ -141,6 +141,10 @@ class PredictionView(View):
             # Calculate total charges
             total_charges = monthly_charges * account_age_months
 
+            # Convert to dollars
+            total_charges = total_charges / 86
+            monthly_charges = monthly_charges / 86
+
             # Categorize total charges
             if total_charges <= 400:
                 total_charges_bucket = "Low"
@@ -172,7 +176,6 @@ class PredictionView(View):
                 "TotalCharges_Bucket": total_charges_mapping[total_charges_bucket],
                 "ParentalControl_Yes": 1 if parental_control == "Yes" else 0  # One-hot encoding
             }
-            print(input_data)
             # Convert input to DataFrame
             input_df = pd.DataFrame([input_data])
 
@@ -180,7 +183,10 @@ class PredictionView(View):
             input_scaled = scaler.transform(input_df)
 
             # Make prediction
-            prediction = xgb_model.predict(input_scaled)[0]
+            # prediction = xgb_model.predict(input_scaled)[0]
+            probability = xgb_model.predict_proba(input_scaled)[0][1]  # Get probability of churn
+            prediction = 1 if probability >= 0.2 else 0 
+
             prediction_label = "Unsubscribe" if prediction == 1 else "Keep subscription"
 
             return JsonResponse({"prediction": prediction_label}, status=200)
