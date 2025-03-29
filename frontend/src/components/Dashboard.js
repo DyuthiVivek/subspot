@@ -21,7 +21,7 @@ function Dashboard() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [userInfo, setUserInfo] = useState({ username: '', email: '' });
 
-  const API_BASE_URL = 'http://localhost:8000/subspot/';
+  const API_BASE_URL = 'https://subspot.onrender.com/subspot/';
 
   useEffect(() => {
     fetch(`${API_BASE_URL}auth/user/`, { credentials: 'include' })
