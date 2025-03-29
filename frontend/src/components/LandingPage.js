@@ -37,31 +37,75 @@ function LandingPage() {
     setSignupPassword('');
   };
 
-  const handleLogin = (e) => {
-    e.preventDefault();
-    fetch(`${API_BASE_URL}auth/login/`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: new URLSearchParams({
-        username: loginUsername,
-        password: loginPassword,
-      }),
-      credentials: 'include',
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.message === 'login successful') {
-          closeLoginModal();
-          navigate('/dashboard');
-        } else {
-          setErrorMessage(data.message || 'Login failed');
-        }
-      })
-      .catch((err) => {
-        console.error('Login error:', err);
-        setErrorMessage('An error occurred during login');
+  const getCsrfToken = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}auth/csrf/`, {
+        credentials: 'include',
       });
+      const data = await response.json();
+      return data.csrfToken;
+    } catch (error) {
+      console.error('Error fetching CSRF token:', error);
+      return null;
+    }
   };
+  
+  // Modify handleLogin to use the CSRF token
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    try {
+      const csrfToken = await getCsrfToken();
+      const response = await fetch(`${API_BASE_URL}auth/login/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'X-CSRFToken': csrfToken,
+        },
+        body: new URLSearchParams({
+          username: loginUsername,
+          password: loginPassword,
+        }),
+        credentials: 'include',
+      });
+      const data = await response.json();
+      if (data.message === 'login successful') {
+        closeLoginModal();
+        navigate('/dashboard');
+      } else {
+        setErrorMessage(data.message || 'Login failed');
+      }
+    } catch (err) {
+      console.error('Login error:', err);
+      setErrorMessage('An error occurred during login');
+    }
+  };
+  
+
+  // const handleLogin = (e) => {
+  //   e.preventDefault();
+  //   fetch(`${API_BASE_URL}auth/login/`, {
+  //     method: 'POST',
+  //     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+  //     body: new URLSearchParams({
+  //       username: loginUsername,
+  //       password: loginPassword,
+  //     }),
+  //     credentials: 'include',
+  //   })
+  //     .then((res) => res.json())
+  //     .then((data) => {
+  //       if (data.message === 'login successful') {
+  //         closeLoginModal();
+  //         navigate('/dashboard');
+  //       } else {
+  //         setErrorMessage(data.message || 'Login failed');
+  //       }
+  //     })
+  //     .catch((err) => {
+  //       console.error('Login error:', err);
+  //       setErrorMessage('An error occurred during login');
+  //     });
+  // };
 
   const handleSignup = (e) => {
     e.preventDefault();

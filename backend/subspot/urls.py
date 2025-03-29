@@ -3,6 +3,7 @@ from .views import dashboard_views, marketpage_views
 from .views import auth
 from .views import ml_prediction_views
 
+
 urlpatterns = [
     path("auth/login/", auth.Login.as_view(), name="Login"),
     path("auth/logout/", auth.Logout.as_view(), name="Logout"),
@@ -21,4 +22,6 @@ urlpatterns = [
     path("mark-paid/", dashboard_views.MarkReminderDoneView.as_view(), name="mark_paid"),
     path("edit-listing-price/", marketpage_views.EditListingPrice.as_view(), name="edit_listing_price"),
     path("unsold-expired-listings/", marketpage_views.UserUnSoldExpiredListingsView.as_view(), name="unsold_expired_listings"),
+    path('auth/csrf/', auth.get_csrf_token, name='csrf_token'),
+
 ]
