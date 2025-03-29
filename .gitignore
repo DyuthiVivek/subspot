@@ -23,6 +23,7 @@ yarn-debug.log*
 yarn-error.log*
 
 backend/backend/settings.py
+backend/backend/.env
 
 frontend/build/
 frontend/node_modules/
