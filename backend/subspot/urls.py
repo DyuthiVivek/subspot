@@ -22,6 +22,6 @@ urlpatterns = [
     path("mark-paid/", dashboard_views.MarkReminderDoneView.as_view(), name="mark_paid"),
     path("edit-listing-price/", marketpage_views.EditListingPrice.as_view(), name="edit_listing_price"),
     path("unsold-expired-listings/", marketpage_views.UserUnSoldExpiredListingsView.as_view(), name="unsold_expired_listings"),
-    path('auth/csrf/', auth.get_csrf_token, name='csrf_token'),
+    # path('auth/csrf/', auth.get_csrf_token, name='csrf_token'),
 
 ]

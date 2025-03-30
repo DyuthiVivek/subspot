@@ -9,9 +9,9 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.http import JsonResponse
 
-@ensure_csrf_cookie
-def get_csrf_token(request):
-    return JsonResponse({'csrfToken': request.CSRF_TOKEN})
+# @ensure_csrf_cookie
+# def get_csrf_token(request):
+#     return JsonResponse({'csrfToken': request.CSRF_TOKEN})
     
 
 @method_decorator(csrf_exempt, name='dispatch')
