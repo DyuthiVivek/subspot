@@ -1,70 +1,77 @@
-# Getting Started with Create React App
+# Subspot
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+SubSpot is your go-to web app for handling subscriptions. We’re here to show you what you’re spending, predict what you can ditch, and connect you with others to share the cost—all in one place.
 
-## Available Scripts
+## Features
+1. EXPENSE CHART:
+Shows expenses of the user in three different time frames (past year, past month and past 6 months). Helps the user analyse spending patterns.
 
-In the project directory, you can run:
+2. SUBSCRIPTIONS:
+Displays user’s current subscriptions. Subscriptions can be added using “Add Subscription”, which contains details of service name, cost, billing cycle (monthly, yearly, quarterly), shareability and auto renew.
 
-### `npm start`
+3. REMINDERS:
+Displays reminders for renewal of subscriptions that are due within 4 days. Can be marked “Done” after renewal.
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+4. SUBSCRIPTION PREDICTIONS:
+Predicts possible cancellation or continuation of subscription based on various details like viewing hours, viewing duration, content downloads, number of customer support tickets raised, rating and presence of parental control. The prediction suggests whether the user should keep the subscription or drop it. Users can simply click on the subscription available on the dashboard and view the prediction pertaining to that subscription.
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
 
-### `npm test`
+5. SUBSCRIPTION MARKETPLACE:
+Allows users to buy or sell subscriptions. Users can edit the cost of subscriptions, delete them and mark the subscription as sold. They can also see the sale history and expired subscription sale listings. Users can also enter into a chat with potential sellers.
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+6. FRIENDS FEATURE:
+Comprises “Suggested”(suggests potential friends) and “My friends”(user’s current friends) sections. Users can search for friends and send connection requests. “Pending Requests” shows the requests that are yet to be accepted. “Subscriptions” lists the subscriptions that are shared by the user’s friends.
 
-### `npm run build`
+7. CHAT FEATURE:
+Allows users to chat with friends or sellers for buying subscriptions, negotiations etc. Allows deletion of messages and attachment of files as well.
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+## Tech stack
+- **Backend**: Django-based REST API.
+- **Frontend**: React-based user interface for interacting with the application.
+- **Machine Learning**: XGBoost model for predictions. Code for training at `predict_churn.ipynb`.
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+## Deployed link
 
-### `npm run eject`
+https://subspot-smoky.vercel.app/
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+## Local setup instructions
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+1. Create a database in MySQL called subspot_db.
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+2. Navigate to the `backend` directory:
+   ```bash
+   cd backend
+   ```
+3. Add database credentials and Django secret key in a `.env` file.
+4. Install the required Python dependencies:
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+    ```bash
+    pip install -r requirements.txt
+    ```
+5. Apply database migrations:
+    ```bash
+    python manage.py makemigrations
+    python manage.py migrate
+    ```
 
-## Learn More
+6. Start the Django development server:
+    ```bash
+    python manage.py runserver
+    ```
+7. Navigate to the frontend directory:
+    ```bash
+    cd frontend
+    ```
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+8. Install the required Node.js dependencies:
+    ```bash
+    npm install
+    ```
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+9. Start the React development server:
+    ```bash
+    npm start
+    ```
 
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+10. Access the frontend at http://localhost:3000.
