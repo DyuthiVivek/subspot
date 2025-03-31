@@ -17,7 +17,7 @@ function Dashboard() {
 
   // const API_BASE_URL = 'http://localhost:8000/subspot/';
 
-  const API_BASE_URL = 'https://subspot-backend-tnb0.onrender.com/subspot/'
+  const API_BASE_URL = 'https://subspot.onrender.com/subspot/'
   useEffect(() => {
     // Fetch user info
     fetch(`${API_BASE_URL}auth/user/`, { credentials: 'include' })

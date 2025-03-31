@@ -19,7 +19,7 @@ function Friends() {
   const [pendingRequests, setPendingRequests] = useState([]);
   const [pendingSentIds, setPendingSentIds] = useState([]);
   // const API_BASE_URL = 'http://localhost:8000/subspot/';
-  const API_BASE_URL = 'https://subspot-backend-tnb0.onrender.com'
+  const API_BASE_URL = 'https://subspot.onrender.com/subspot/'
 
 
   // Fetch logged-in user info and connections data

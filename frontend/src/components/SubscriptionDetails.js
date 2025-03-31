@@ -3,7 +3,7 @@ import { useLocation, useParams, useNavigate } from 'react-router-dom';
 import './SubscriptionDetails.css';
 
 // const API_BASE_URL = 'http://localhost:8000/subspot/';
-const API_BASE_URL = 'https://subspot-backend-tnb0.onrender.com'
+const API_BASE_URL = 'https://subspot.onrender.com/subspot/'
 
 function SubscriptionDetails() {
   const { id } = useParams();
