@@ -6,22 +6,22 @@ import { Link, useNavigate } from 'react-router-dom';
 import ChatIcon from './ChatIcon'; 
 
 
-function parseDurationToDays(durationStr) {
-  switch (durationStr) {
-    case '1 month':
-      return 30;
-    case '2 months':
-      return 60;
-    case '3 months':
-      return 90;
-    case '6 months':
-      return 180;
-    case '1 year':
-      return 365;
-    default:
-      return 30; 
-  }
-}
+// function parseDurationToDays(durationStr) {
+//   switch (durationStr) {
+//     case '1 month':
+//       return 30;
+//     case '2 months':
+//       return 60;
+//     case '3 months':
+//       return 90;
+//     case '6 months':
+//       return 180;
+//     case '1 year':
+//       return 365;
+//     default:
+//       return 30; 
+//   }
+// }
 
 function Market() {
   // Track which tab is active: "buy", "sell", or "expired"
@@ -44,12 +44,11 @@ function Market() {
   //user dropdown
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [userInfo, setUserInfo] = useState({ username: '', email: '' });
-  const API_BASE_URL = 'https://subspot.onrender.com/subspot/';
-  //const API_BASE_URL = 'https://localhost:8000/subspot/';
+  // const API_BASE_URL = 'http://localhost:8000/subspot/';
+  const API_BASE_URL = 'https://subspot-backend-tnb0.onrender.com'
 
   useEffect(() => {
-    fetch(`${API_BASE_URL}auth/user/`, { credentials: 'include', headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    })
+    fetch(`${API_BASE_URL}auth/user/`, { credentials: 'include' })
       .then(res => {
         if (res.status === 401) {
           navigate('/');

@@ -16,8 +16,8 @@ function LandingPage() {
   const [errorMessage, setErrorMessage] = useState('');
 
   const navigate = useNavigate();
-  const API_BASE_URL = 'https://subspot.onrender.com/subspot/';
-  //const API_BASE_URL = 'https://localhost:8000/subspot/';
+  // const API_BASE_URL = 'http://localhost:8000/subspot/';
+  const API_BASE_URL = 'https://subspot-backend-tnb0.onrender.com'
 
   const openLoginModal = () => setIsLoginModalOpen(true);
   const closeLoginModal = () => {
@@ -37,75 +37,31 @@ function LandingPage() {
     setSignupPassword('');
   };
 
-  const getCsrfToken = async () => {
-    try {
-      const response = await fetch(`${API_BASE_URL}auth/csrf/`, {
-        credentials: 'include',
-      });
-      const data = await response.json();
-      return data.csrfToken;
-    } catch (error) {
-      console.error('Error fetching CSRF token:', error);
-      return null;
-    }
-  };
-  
-  // Modify handleLogin to use the CSRF token
-  const handleLogin = async (e) => {
+  const handleLogin = (e) => {
     e.preventDefault();
-    try {
-      const csrfToken = await getCsrfToken();
-      const response = await fetch(`${API_BASE_URL}auth/login/`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-          'X-CSRFToken': csrfToken,
-        },
-        body: new URLSearchParams({
-          username: loginUsername,
-          password: loginPassword,
-        }),
-        credentials: 'include',
+    fetch(`${API_BASE_URL}auth/login/`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({
+        username: loginUsername,
+        password: loginPassword,
+      }),
+      credentials: 'include',
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.message === 'login successful') {
+          closeLoginModal();
+          navigate('/dashboard');
+        } else {
+          setErrorMessage(data.message || 'Login failed');
+        }
+      })
+      .catch((err) => {
+        console.error('Login error:', err);
+        setErrorMessage('An error occurred during login');
       });
-      const data = await response.json();
-      if (data.message === 'login successful') {
-        closeLoginModal();
-        navigate('/dashboard');
-      } else {
-        setErrorMessage(data.message || 'Login failed');
-      }
-    } catch (err) {
-      console.error('Login error:', err);
-      setErrorMessage('An error occurred during login');
-    }
   };
-  
-
-  // const handleLogin = (e) => {
-  //   e.preventDefault();
-  //   fetch(`${API_BASE_URL}auth/login/`, {
-  //     method: 'POST',
-  //     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-  //     body: new URLSearchParams({
-  //       username: loginUsername,
-  //       password: loginPassword,
-  //     }),
-  //     credentials: 'include',
-  //   })
-  //     .then((res) => res.json())
-  //     .then((data) => {
-  //       if (data.message === 'login successful') {
-  //         closeLoginModal();
-  //         navigate('/dashboard');
-  //       } else {
-  //         setErrorMessage(data.message || 'Login failed');
-  //       }
-  //     })
-  //     .catch((err) => {
-  //       console.error('Login error:', err);
-  //       setErrorMessage('An error occurred during login');
-  //     });
-  // };
 
   const handleSignup = (e) => {
     e.preventDefault();
@@ -173,11 +129,10 @@ function LandingPage() {
             </p>
           </div>
           <div className="ServiceCard">
-            <h3>Expense Prediction</h3>
+            <h3>Friends Connection</h3>
             <p>
-              Take control of your finances with our expense prediction feature
-              that analyzes your usage patterns to forecast future subscription
-              costs, helping you budget more effectively and avoid surprises.
+            Connect with friends and manage shared subscriptions effortlessly. 
+            Keep track of who’s subscribed to what and enjoy your favorite services together without any hassle.
             </p>
           </div>
           <div className="ServiceCard">

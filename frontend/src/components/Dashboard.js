@@ -1,34 +1,26 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import './Dashboard.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCircleUser, faPlus, faTrash, faTimes } from '@fortawesome/free-solid-svg-icons';
+import { faCircleUser, faPlus } from '@fortawesome/free-solid-svg-icons';
 import { useNavigate, Link } from 'react-router-dom';
-import ChatIcon from './ChatIcon'; 
+import ChatIcon from './ChatIcon';
 
 function Dashboard() {
   const navigate = useNavigate();
   const [expenseRange, setExpenseRange] = useState('Past year');
   const [showSubscriptions, setShowSubscriptions] = useState(true);
-  const [newSubscriptionName, setNewSubscriptionName] = useState('');
-  const [newSubscriptionCost, setNewSubscriptionCost] = useState('');
-  const [newSubscriptionReminder, setNewSubscriptionReminder] = useState('monthly');
-  const [newSubscriptionSharable, setNewSubscriptionSharable] = useState(true);
-  const [newSubscriptionAutoRenew, setNewSubscriptionAutoRenew] = useState(false);
-
   const [subscriptions, setSubscriptions] = useState([]);
   const [reminders, setReminders] = useState([]);
   const [expenseData, setExpenseData] = useState({ months: [], barHeights: [] });
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [userInfo, setUserInfo] = useState({ username: '', email: '', password: '' });
+  const [userInfo, setUserInfo] = useState({ username: '', email: '' });
 
-  const API_BASE_URL = 'https://subspot.onrender.com/subspot/';
-
-  // const API_BASE_URL = 'https://localhost:8000/subspot/';
+  // const API_BASE_URL = 'http://localhost:8000/subspot/';
+  const API_BASE_URL = 'https://subspot-backend-tnb0.onrender.com'
 
   useEffect(() => {
-    fetch(`${API_BASE_URL}auth/user/`, { credentials: 'include', headers: {
-      'Content-Type': 'application/x-www-form-urlencoded',
-  },})
+    // Fetch user info
+    fetch(`${API_BASE_URL}auth/user/`, { credentials: 'include' })
       .then(res => {
         if (res.status === 401) {
           navigate('/');
@@ -40,34 +32,30 @@ function Dashboard() {
         if (data) {
           setUserInfo({ username: data.username, email: data.email });
         }
-      })  
+      })
       .catch(err => console.error('Error fetching user info:', err));
 
-    fetch(`${API_BASE_URL}subscriptions/`, { credentials: 'include', 'Content-Type': 'application/x-www-form-urlencoded' })
+    // Fetch subscriptions
+    fetch(`${API_BASE_URL}subscriptions/`, { credentials: 'include' })
       .then(res => res.json())
-      .then(data => {
-        console.log('Subscriptions:', data);
-        setSubscriptions(data);
-      })
+      .then(data => setSubscriptions(data))
       .catch(err => console.error('Error fetching subscriptions:', err));
 
-    fetch(`${API_BASE_URL}reminders/`, { credentials: 'include', 'Content-Type': 'application/x-www-form-urlencoded' })
+    // Fetch reminders
+    fetch(`${API_BASE_URL}reminders/`, { credentials: 'include' })
       .then(res => res.json())
-      .then(data => {
-        console.log('Reminders:', data);
-        setReminders(data);
-      })
+      .then(data => setReminders(data))
       .catch(err => console.error('Error fetching reminders:', err));
 
-    fetch(`${API_BASE_URL}expenses/?range=${expenseRange.toLowerCase().replace(' ', '_')}`, { credentials: 'include', 'Content-Type': 'application/x-www-form-urlencoded' })
+    // Fetch expense data
+    fetch(`${API_BASE_URL}expenses/?range=${expenseRange.toLowerCase().replace(' ', '_')}`, { credentials: 'include' })
       .then(res => res.json())
-      .then(data => {
-        console.log('Expenses:', data);
-        setExpenseData({ months: data.months || [], barHeights: data.barHeights || [] });
-      })
-      .catch(err => console.error('Error fetching expenses:', err));  
+      .then(data => setExpenseData({ months: data.months || [], barHeights: data.barHeights || [] }))
+      .catch(err => console.error('Error fetching expenses:', err));
   }, [expenseRange, navigate]);
+
   const handleTabClick = (tab) => setShowSubscriptions(tab === 'subscriptions');
+
   const handleMarkReminderDone = (id) => {
     fetch(`${API_BASE_URL}mark-paid/`, {
       method: 'POST',
@@ -78,8 +66,8 @@ function Dashboard() {
       .then(res => res.json())
       .then(data => {
         if (data.success) {
-          // Refresh reminders to reflect the updated renew_date
-          fetch(`${API_BASE_URL}reminders/`, { credentials: 'include','Content-Type': 'application/x-www-form-urlencoded' })
+          // Refresh reminders
+          fetch(`${API_BASE_URL}reminders/`, { credentials: 'include' })
             .then(res => res.json())
             .then(reminderData => setReminders(reminderData))
             .catch(err => console.error('Error refreshing reminders:', err));
@@ -96,7 +84,6 @@ function Dashboard() {
     fetch(`${API_BASE_URL}subscriptions/${id}/`, {
       method: 'DELETE',
       credentials: 'include',
-      'Content-Type': 'application/x-www-form-urlencoded'
     })
       .then(() => {
         setSubscriptions(subscriptions.filter(sub => sub.id !== id));
@@ -105,46 +92,10 @@ function Dashboard() {
       .catch(err => console.error('Error deleting subscription:', err));
   };
 
-  const handleAddSubscription = (e) => {
-    e.preventDefault();
-    const newSubscription = {
-      name: newSubscriptionName,
-      reminder: newSubscriptionReminder,
-      cost: newSubscriptionCost,
-      is_shareable: newSubscriptionSharable,
-      is_autorenew: newSubscriptionAutoRenew,
-    };
-  
-    fetch(`${API_BASE_URL}subscriptions/`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(newSubscription),
-      credentials: 'include',
-    })
-      .then(res => res.json())
-      .then(data => {
-        setSubscriptions([...subscriptions, data]);
-        fetch(`${API_BASE_URL}reminders/`, { credentials: 'include','Content-Type': 'application/x-www-form-urlencoded'})
-          .then(res => res.json())
-          .then(reminderData => {
-            console.log('Updated Reminders:', reminderData);
-            setReminders(reminderData);
-          })
-          .catch(err => console.error('Error fetching reminders:', err));
-        closeAddSubscriptionModal();
-        setNewSubscriptionName('');
-        setNewSubscriptionCost('');
-        setNewSubscriptionReminder('monthly');
-        setNewSubscriptionSharable(true);
-        setNewSubscriptionAutoRenew(false);
-      })
-      .catch(err => console.error('Error adding subscription:', err));
-  };
   const handleLogout = () => {
     fetch(`${API_BASE_URL}auth/logout/`, {
       method: 'POST',
       credentials: 'include',
-      'Content-Type': 'application/x-www-form-urlencoded'
     })
       .then(() => {
         setIsDropdownOpen(false);
@@ -154,6 +105,8 @@ function Dashboard() {
   };
 
   const toggleDropdown = () => setIsDropdownOpen(!isDropdownOpen);
+
+  // Filter expense data
   const filteredExpenseData = useMemo(() => {
     const allMonths = expenseData.months || [];
     const allBarHeights = expenseData.barHeights || [];
@@ -186,32 +139,35 @@ function Dashboard() {
       filteredHeights = orderedHeights;
     }
 
-    console.log('Filtered Expense Data:', { months: filteredMonths, barHeights: filteredHeights });
     return { months: filteredMonths, barHeights: filteredHeights };
   }, [expenseData, expenseRange]);
 
   const months = filteredExpenseData.months;
   const barHeights = filteredExpenseData.barHeights;
-  const [isAddSubscriptionModalOpen, setIsAddSubscriptionModalOpen] = useState(false);
-  const openAddSubscriptionModal = () => setIsAddSubscriptionModalOpen(true);
-  const closeAddSubscriptionModal = () => setIsAddSubscriptionModalOpen(false);
-console.log('here')
+
   return (
     <div className="dashboard-container">
       <header className="dashboard-header">
         <nav className="dashboard-nav">
-          <Link to="/dashboard" className="nav-link active">Dashboard</Link>
-          <Link to="/market" className="nav-link">Market</Link>
-          <Link to="/friends" className="nav-link">Friends</Link>
-          <div className="user-icon">
-            <FontAwesomeIcon icon={faCircleUser} onClick={toggleDropdown}/>
-            {isDropdownOpen && (
-              <div className="user-dropdown">
-                <p>Username: <span className="value">{userInfo.username}</span></p>
-                <p>Email: <span className="value">{userInfo.email}</span></p>
-                <button className="logout-button" onClick={handleLogout}>Logout</button>
-              </div>
-            )}
+          <div className="nav-links">
+            <Link to="/dashboard" className="nav-link active">Dashboard</Link>
+            <Link to="/market" className="nav-link">Market</Link>
+            <Link to="/friends" className="nav-link">Friends</Link>
+          </div>
+          <div className="nav-icons">
+            <div className="user-icon" onClick={toggleDropdown}>
+              <FontAwesomeIcon icon={faCircleUser} />
+              {isDropdownOpen && (
+                <div className="user-dropdown">
+                  <p>Username: <span className="value">{userInfo.username}</span></p>
+                  <p>Email: <span className="value">{userInfo.email}</span></p>
+                  <button className="logout-button" onClick={handleLogout}>Logout</button>
+                </div>
+              )}
+            </div>
+            <div className="chat-icon">
+              <ChatIcon />
+            </div>
           </div>
         </nav>
       </header>
@@ -223,7 +179,7 @@ console.log('here')
             <select
               className="expense-range-select"
               value={expenseRange}
-              onChange={handleExpenseRangeChange}
+              onChange={(e) => setExpenseRange(e.target.value)}
             >
               <option value="Past year">Past year</option>
               <option value="Last month">Last month</option>
@@ -239,11 +195,7 @@ console.log('here')
             </div>
             <div className="chart-bars">
               {barHeights.map((height, index) => (
-                <div
-                  key={index}
-                  className="chart-bar"
-                  style={{ height: `${(height / 3000) * 100}%` }}
-                ></div>
+                <div key={index} className="chart-bar" style={{ height: `${(height / 3000) * 100}%` }} />
               ))}
             </div>
             <div className="chart-labels">
@@ -262,64 +214,14 @@ console.log('here')
 
         <section className="subscriptions-section">
           <div className="section-tabs">
-            <button
-              className={`tab-button ${showSubscriptions ? 'active' : ''}`}
-              onClick={() => handleTabClick('subscriptions')}
-            >
+            <button className={`tab-button ${showSubscriptions ? 'active' : ''}`} onClick={() => handleTabClick('subscriptions')}>
               Subscriptions
             </button>
-            <button
-              className={`tab-button ${!showSubscriptions ? 'active' : ''}`}
-              onClick={() => handleTabClick('reminders')}
-            >
+            <button className={`tab-button ${!showSubscriptions ? 'active' : ''}`} onClick={() => handleTabClick('reminders')}>
               Reminders
             </button>
           </div>
-          {/* <div className="subscription-list">
-            {showSubscriptions ? (
-              <>
-                {subscriptions.map((subscription) => (
-                  <div className="subscription-item" key={subscription.id}>
-                    <div className="subscription-logo">
-                      {subscription.logo && (
-                        <img src={subscription.logo} alt={`${subscription.name} Logo`} style={{ width: '32px', height: '32px' }} />
-                      )}
-                    </div>
-                    <div className="subscription-name">{subscription.name}</div>
-                    <div className="subscription-cost">Rs. {subscription.cost}</div>
-                    <button
-                      className="delete-button"
-                      onClick={() => handleDeleteSubscription(subscription.id)}
-                    >
-                      <FontAwesomeIcon icon={faTrash} />
-                    </button>
-                  </div>
-                ))}
-                <button className="add-subscription-button" onClick={openAddSubscriptionModal}>
-                  <FontAwesomeIcon icon={faPlus} /> Add Subscription
-                </button>
-              </>
-            ) : (
-              <div className="reminder-list">
-                {reminders.map((reminder) => (
-                  <div className="reminder-item" key={reminder.id}>
-                    <div className="reminder-date">
-                      <span className="reminder-month">{reminder.end_date?.split(' ')[0]}</span>
-                      <span className="reminder-day">{reminder.end_date?.split(' ')[1]}</span>
-                    </div>
-                    <div className="reminder-name">{reminder.name}</div>
-                    <div className="reminder-cost">Rs. {reminder.cost}</div>
-                    <button
-                      className="done-button"
-                      onClick={() => handleMarkReminderDone(reminder.id)}
-                    >
-                      Done
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div> */}
+
           <div className="subscription-list">
             {showSubscriptions ? (
               <>
@@ -332,105 +234,46 @@ console.log('here')
                   >
                     <div className="subscription-logo">
                       {subscription.logo && (
-                        <img src={subscription.logo} alt={`${subscription.name} Logo`} style={{ width: '32px', height: '32px' }} />
+                        <img
+                          src={subscription.logo}
+                          alt={`${subscription.name} Logo`}
+                          style={{ width: '32px', height: '32px' }}
+                        />
                       )}
                     </div>
                     <div className="subscription-name">{subscription.name}</div>
                     <div className="subscription-cost">Rs. {subscription.cost}</div>
                   </Link>
                 ))}
-                <button className="add-subscription-button" onClick={openAddSubscriptionModal}>
+                <button className="add-subscriptions-button" onClick={() => navigate('/add-subscription')}>
                   <FontAwesomeIcon icon={faPlus} /> Add Subscription
                 </button>
               </>
             ) : (
               <div className="reminder-list">
-                {reminders.map((reminder) => (
-                  <div className="reminder-item" key={reminder.id}>
-                    <div className="reminder-date">
-                      <span className="reminder-month">{reminder.end_date?.split(' ')[0]}</span>
-                      <span className="reminder-day">{reminder.end_date?.split(' ')[1]}</span>
+                {reminders.length === 0 ? (
+                  <p className="no-results-message">
+                    Yay! You have no reminders – enjoy your free time!
+                  </p>
+                ) : (
+                  reminders.map((reminder) => (
+                    <div className="reminder-item" key={reminder.id}>
+                      <div className="reminder-date">
+                        <span className="reminder-month">{reminder.end_date?.split(' ')[0]}</span>
+                        <span className="reminder-day">{reminder.end_date?.split(' ')[1]}</span>
+                      </div>
+                      <div className="reminder-name">{reminder.name}</div>
+                      <div className="reminder-cost">Rs. {reminder.cost}</div>
+                      <button className="done-button" onClick={() => handleMarkReminderDone(reminder.id)}>
+                        Done
+                      </button>
                     </div>
-                    <div className="reminder-name">{reminder.name}</div>
-                    <div className="reminder-cost">Rs. {reminder.cost}</div>
-                    <button
-                      className="done-button"
-                      onClick={() => handleMarkReminderDone(reminder.id)}
-                    >
-                      Done
-                    </button>
-                  </div>
-                ))}
+                  ))
+                )}
               </div>
             )}
           </div>
-
         </section>
-
-        {isAddSubscriptionModalOpen && (
-          <div className="LoginModalOverlay">
-            <div className="LoginModal">
-              <button className="CloseButton" onClick={closeAddSubscriptionModal}>
-                <FontAwesomeIcon icon={faTimes} />
-              </button>
-              <h2>Add Subscription</h2>
-              <form onSubmit={handleAddSubscription}>
-                <div className="InputGroup">
-                  <label>Service Name:</label>
-                  <input
-                    type="text"
-                    placeholder="Enter service name"
-                    value={newSubscriptionName}
-                    onChange={(e) => setNewSubscriptionName(e.target.value)}
-                  />
-                </div>
-                <div className="InputGroup">
-                  <label>Cost:</label>
-                  <input
-                    type="number"
-                    placeholder="Enter cost"
-                    value={newSubscriptionCost}
-                    onChange={(e) => setNewSubscriptionCost(e.target.value)}
-                  />
-                </div>
-                <div className="InputGroup">
-                  <label>Billing Cycle:</label>
-                  <select
-                    value={newSubscriptionReminder}
-                    onChange={(e) => setNewSubscriptionReminder(e.target.value)}
-                  >
-                    <option value="monthly">Monthly</option>
-                    <option value="quarterly">Quarterly</option>
-                    <option value="yearly">Yearly</option>
-                  </select>
-                </div>
-                <div className="InputGroup">
-                  <label>Sharable:</label>
-                  <select
-                    value={newSubscriptionSharable ? 'yes' : 'no'}
-                    onChange={(e) => setNewSubscriptionSharable(e.target.value === 'yes')}
-                  >
-                    <option value="yes">Yes</option>
-                    <option value="no">No</option>
-                  </select>
-                </div>
-                <div className="InputGroup">
-                  <label>Auto Renew:</label>
-                  <select
-                    value={newSubscriptionAutoRenew ? 'yes' : 'no'}
-                    onChange={(e) => setNewSubscriptionAutoRenew(e.target.value === 'yes')}
-                  >
-                    <option value="yes">Yes</option>
-                    <option value="no">No</option>
-                  </select>
-                </div>
-                <button className="LoginButton">Add Subscription</button>
-              </form>
-            </div>
-          </div>
-        )}
-        <div className="bottom-left-ellipse"></div>
-        <div className="bottom-right-ellipse"></div>
       </main>
     </div>
   );
