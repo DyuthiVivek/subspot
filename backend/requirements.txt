@@ -8,4 +8,3 @@ gunicorn
 django-cors-headers
 mysqlclient
 python-dotenv
-channels

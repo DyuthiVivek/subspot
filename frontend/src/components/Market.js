@@ -45,10 +45,10 @@ function Market() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [userInfo, setUserInfo] = useState({ username: '', email: '' });
   // const API_BASE_URL = 'http://localhost:8000/subspot/';
-  const API_BASE_URL = 'https://subspot-backend-tnb0.onrender.com/subspot/'
+  const API_BASE_URL = 'https://subspot.onrender.com/subspot/'
 
   useEffect(() => {
-    fetch(`${API_BASE_URL}auth/user/`, { credentials: 'include' })
+    fetch(`${API_BASE_URL}auth/user/`, { credentials: 'include',  'Content-Type': 'application/x-www-form-urlencoded'  })
       .then(res => {
         if (res.status === 401) {
           navigate('/');
@@ -64,6 +64,7 @@ function Market() {
     fetch(`${API_BASE_URL}auth/logout/`, {
       method: 'POST',
       credentials: 'include',
+      'Content-Type': 'application/x-www-form-urlencoded' 
     })
       .then(() => {
         setIsDropdownOpen(false);
@@ -157,7 +158,7 @@ function Market() {
 
   // Fetch available listings for Buy tab
   const fetchAvailableListings = () => {
-    fetch(`${API_BASE_URL}listings/`, { credentials: 'include' })
+    fetch(`${API_BASE_URL}listings/`, { credentials: 'include',  'Content-Type': 'application/x-www-form-urlencoded' })
       .then(res => res.json())
       .then(data => {
         setSubscriptionItems(data);
@@ -167,7 +168,7 @@ function Market() {
 
   // Fetch user's unsold listings for Sell tab
   const fetchUserUnsoldListings = () => {
-    fetch(`${API_BASE_URL}unsold-listings/`, { credentials: 'include' })
+    fetch(`${API_BASE_URL}unsold-listings/`, { credentials: 'include',  'Content-Type': 'application/x-www-form-urlencoded' })
       .then(res => res.json())
       .then(data => {
         setSellItems(data);
@@ -175,7 +176,7 @@ function Market() {
       .catch(err => console.error('Error fetching unsold listings:', err));
 
     // Also fetch sold listings for history
-    fetch(`${API_BASE_URL}sold-listings/`, { credentials: 'include' })
+    fetch(`${API_BASE_URL}sold-listings/`, { credentials: 'include',  'Content-Type': 'application/x-www-form-urlencoded' })
       .then(res => res.json())
       .then(data => {
         setSoldItems(data);
@@ -185,7 +186,7 @@ function Market() {
 
   // Fetch expired listings
   const fetchExpiredListings = () => {
-    fetch(`${API_BASE_URL}unsold-expired-listings/`, { credentials: 'include' })
+    fetch(`${API_BASE_URL}unsold-expired-listings/`, { credentials: 'include',  'Content-Type': 'application/x-www-form-urlencoded' })
       .then(res => res.json())
       .then(data => {
         setExpiredItems(data);
@@ -222,7 +223,8 @@ function Market() {
     fetch(`${API_BASE_URL}edit-listing-price/`, {
       method: 'POST',
       credentials: 'include',
-      body: formData
+      body: formData,
+      'Content-Type': 'application/x-www-form-urlencoded' 
     })
       .then(res => res.json())
       .then(data => {
