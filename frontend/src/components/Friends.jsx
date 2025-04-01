@@ -134,7 +134,7 @@ function Friends() {
   const toggleDropdown = () => setIsDropdownOpen(!isDropdownOpen);
 
   // Sample data for demo purposes:
-  const [suggestedFriends, setSuggestedFriends] = useState();
+  const [suggestedFriends, setSuggestedFriends] = useState([]);  // Initialize with empty array
 
   const [myFriends, setMyFriends] = useState([
     { id: 101, username: 'Bob Smith', mutual_friends_count: 1 },
@@ -241,7 +241,7 @@ function Friends() {
   };
 
   // Determine which list to display based on activeTab
-  const displayedList = activeTab === 'suggested' ? suggestedFriends : myFriends;
+  const displayedList = activeTab === 'suggested' ? suggestedFriends || [] : myFriends || [];
 
   // Filter by search term for friends and requests
   const filteredList = displayedList.filter(friend =>

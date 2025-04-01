@@ -14,7 +14,7 @@ import {
 import './ChatListPage.css';
 
 // Update the API base URL to match the Dashboard.js pattern
-const API_BASE_URL = 'http://localhost:8000/subspot/';
+const API_BASE_URL = 'https://subspot.onrender.com/subspot/'
 
 // Add this function to parse the URL parameters
 const getURLParams = () => {
