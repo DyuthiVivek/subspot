@@ -459,17 +459,31 @@ function Friends() {
                     </div>
                   </div>
                   <div className="subscription-right">
-                    <Link
-                      to={`/chats?user_id=${friend.id}`}
+                    <button
+                      onClick={() => {
+                        // Directly navigate with the user_id parameter
+                        const friendId = friend.id;
+                        console.log("Navigating to chat with friend ID:", friendId);
+                        // Use direct navigation with state to guarantee the ID is passed
+                        navigate({
+                          pathname: '/chats',
+                          search: `?user_id=${friendId}`
+                        });
+                      }}
                       className="action-button"
                       style={{ 
                         textDecoration: 'none', 
                         display: 'inline-block',
-                        marginRight: '10px'
+                        marginRight: '10px',
+                        background: 'none',
+                        border: 'none',
+                        color: '#3381F0',
+                        cursor: 'pointer',
+                        padding: '5px 10px'
                       }}
                     >
                       Chat
-                    </Link>
+                    </button>
                     <button
                       className="action-button"
                       onClick={() => handleRemove(friend.id)}

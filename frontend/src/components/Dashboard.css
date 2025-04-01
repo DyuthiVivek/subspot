@@ -291,6 +291,38 @@
     align-items: center;
 }
 
+.subscription-item-wrapper {
+    position: relative;
+    width: 520px;
+    display: flex;
+    align-items: center;
+}
+
+.subscription-item-wrapper .subscription-item {
+    width: 100%;
+}
+
+.remove-subscription-button {
+    position: absolute;
+    right: -40px;
+    background-color: rgba(255, 255, 255, 0.2);
+    color: #fff;
+    border: none;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    font-size: 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s ease;
+}
+
+.remove-subscription-button:hover {
+    background-color: rgba(255, 75, 75, 0.7);
+}
+
 .subscription-item {
     background-color: rgba(255, 255, 255, 0.1);
     height: 55px;

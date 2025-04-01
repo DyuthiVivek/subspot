@@ -16,11 +16,13 @@ import './ChatListPage.css';
 // Update the API base URL to match the Dashboard.js pattern
 const API_BASE_URL = 'https://subspot.onrender.com/subspot/'
 
-// Add this function to parse the URL parameters
+// Enhanced URL parameter parsing
 const getURLParams = () => {
   const queryParams = new URLSearchParams(window.location.search);
+  const userId = queryParams.get('user_id');
+  console.log("URL parameters - user_id:", userId);
   return {
-    userId: queryParams.get('user_id'),
+    userId
   };
 };
 
@@ -66,16 +68,19 @@ const ChatListPage = () => {
       .catch((err) => console.error('Error fetching user info:', err));
   }, [navigate]);
 
-  // Update component initialization to check for URL parameters only once
+  // Update the useEffect that handles URL parameters
   useEffect(() => {
     const { userId } = getURLParams();
     
-    // Only handle the URL param once when the component mounts
-    if (userId && chatList.length > 0) {
+    // If we have a userId parameter, start a chat immediately
+    if (userId && userInfo) {
+      console.log("Found user_id in URL and userInfo loaded, starting chat with:", userId);
       setIsLoading(true);
       startNewChat(userId);
+    } else if (userId) {
+      console.log("Found user_id in URL but userInfo not loaded yet:", userId);
     }
-  }, [chatList.length]); // Only re-run when chatList changes
+  }, [userInfo]);
 
   // Fetch chat list when component mounts - matches ChatListView in chat_views.py
   useEffect(() => {
@@ -340,24 +345,21 @@ const ChatListPage = () => {
     e.target.value = '';
   };
 
-  // Update startNewChat to prevent duplicate chat creation
+  // Improved startNewChat function with better error handling and logging
   const startNewChat = async (userId, initialMessage = null) => {
-    // First check if we already have a chat with this user
-    const existingChat = chatList.find(chat => {
-      return chat.name === userInfo?.username;
-    });
+    console.log("Starting new chat with user ID:", userId);
     
-    if (existingChat) {
-      // Just select the existing chat instead of creating a new one
-      setSelectedChat(existingChat.id);
-      setIsLoading(false);
+    if (!userInfo) {
+      console.error("User info not loaded yet");
       return;
     }
-
+    
     try {
       // Create URLSearchParams for POST request to match StartChatView
       const formData = new URLSearchParams();
       formData.append('user_id', userId);
+      
+      console.log("Sending request to start chat with user ID:", userId);
       
       const response = await fetch(`${API_BASE_URL}chats/start/`, {
         method: 'POST',
@@ -373,34 +375,40 @@ const ChatListPage = () => {
         return;
       }
 
+      if (!response.ok) {
+        console.error("Error starting chat:", await response.text());
+        return;
+      }
+
       const data = await response.json();
+      console.log("Chat created successfully:", data);
       
       // Add to chat list if not already there
+      const chatId = data.id.toString();
+      const userName = data.other_participant.username || `Chat #${data.id}`;
+      
+      // First update chat list
       setChatList(prev => {
         // Check if this chat already exists in our list
-        if (!prev.some(chat => chat.id === data.id.toString())) {
+        if (!prev.some(chat => chat.id === chatId)) {
           return [
-            ...prev,
             {
-              id: data.id.toString(),
-              name: data.other_participant.username || `Chat #${data.id}`,
+              id: chatId,
+              name: userName,
               lastMessage: data.last_message?.text || '',
               unreadCount: data.unread_count || 0,
-            }
+            },
+            ...prev
           ];
         }
         return prev;
       });
       
-      // Select this chat
-      setSelectedChat(data.id.toString());
-      
-      // If there's an initial message, send it
-      if (initialMessage) {
-        setTypedMessage(initialMessage);
-        // Use setTimeout to ensure the chat is selected before sending
-        setTimeout(() => handleSend(), 300);
-      }
+      // Then select chat with a delay to ensure state has updated
+      setTimeout(() => {
+        console.log("Selecting chat ID:", chatId);
+        setSelectedChat(chatId);
+      }, 300);
       
       setIsLoading(false);
     } catch (error) {

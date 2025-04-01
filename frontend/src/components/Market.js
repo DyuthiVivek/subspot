@@ -419,7 +419,7 @@ const handleSellFormSubmit = (e) => {
     setSelectedItem(null);
   };
 
-  // Update the handleContactSeller function to use the existing seller_id
+  // Update the handleContactSeller function
   const handleContactSeller = () => {
     if (!selectedItem || !selectedItem.seller_id) {
       console.error("No seller ID available for this listing");

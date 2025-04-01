@@ -81,15 +81,27 @@ function Dashboard() {
   const handleExpenseRangeChange = (event) => setExpenseRange(event.target.value);
 
   const handleDeleteSubscription = (id) => {
-    fetch(`${API_BASE_URL}subscriptions/${id}/`, {
-      method: 'DELETE',
-      credentials: 'include',
-    })
-      .then(() => {
-        setSubscriptions(subscriptions.filter(sub => sub.id !== id));
-        setReminders(reminders.filter(reminder => reminder.id !== id));
+    // Show confirmation dialog
+    if (window.confirm('Are you sure you want to remove this subscription?')) {
+      fetch(`${API_BASE_URL}subscriptions/${id}/`, {
+        method: 'DELETE',
+        credentials: 'include',
       })
-      .catch(err => console.error('Error deleting subscription:', err));
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error('Failed to delete subscription');
+          }
+          // Remove the subscription from the state
+          setSubscriptions(subscriptions.filter(sub => sub.id !== id));
+          
+          // Also remove from reminders if it exists there
+          setReminders(reminders.filter(reminder => reminder.id !== id));
+        })
+        .catch(err => {
+          console.error('Error deleting subscription:', err);
+          alert('Failed to delete the subscription. Please try again.');
+        });
+    }
   };
 
   const handleLogout = () => {
@@ -226,24 +238,35 @@ function Dashboard() {
             {showSubscriptions ? (
               <>
                 {subscriptions.map((subscription) => (
-                  <Link
-                    to={`/subscription/${subscription.id}`}
-                    state={{ user: userInfo, subscription }}
-                    className="subscription-item"
-                    key={subscription.id}
-                  >
-                    <div className="subscription-logo">
-                      {subscription.logo && (
-                        <img
-                          src={subscription.logo}
-                          alt={`${subscription.name} Logo`}
-                          style={{ width: '32px', height: '32px' }}
-                        />
-                      )}
-                    </div>
-                    <div className="subscription-name">{subscription.name}</div>
-                    <div className="subscription-cost">Rs. {subscription.cost}</div>
-                  </Link>
+                  <div className="subscription-item-wrapper" key={subscription.id}>
+                    <Link
+                      to={`/subscription/${subscription.id}`}
+                      state={{ user: userInfo, subscription }}
+                      className="subscription-item"
+                    >
+                      <div className="subscription-logo">
+                        {subscription.logo && (
+                          <img
+                            src={subscription.logo}
+                            alt={`${subscription.name} Logo`}
+                            style={{ width: '32px', height: '32px' }}
+                          />
+                        )}
+                      </div>
+                      <div className="subscription-name">{subscription.name}</div>
+                      <div className="subscription-cost">Rs. {subscription.cost}</div>
+                    </Link>
+                    <button 
+                      className="remove-subscription-button" 
+                      onClick={(e) => {
+                        e.preventDefault();
+                        handleDeleteSubscription(subscription.id);
+                      }}
+                      title="Remove subscription"
+                    >
+                      ✕
+                    </button>
+                  </div>
                 ))}
                 <button className="add-subscriptions-button" onClick={() => navigate('/add-subscription')}>
                   <FontAwesomeIcon icon={faPlus} /> Add Subscription
