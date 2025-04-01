@@ -44,11 +44,10 @@ function Market() {
   //user dropdown
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [userInfo, setUserInfo] = useState({ username: '', email: '' });
-  // const API_BASE_URL = 'http://localhost:8000/subspot/';
-  const API_BASE_URL = 'https://subspot.onrender.com/subspot/'
+  const API_BASE_URL = 'http://localhost:8000/subspot/';
 
   useEffect(() => {
-    fetch(`${API_BASE_URL}auth/user/`, { credentials: 'include',  'Content-Type': 'application/x-www-form-urlencoded'  })
+    fetch(`${API_BASE_URL}auth/user/`, { credentials: 'include' })
       .then(res => {
         if (res.status === 401) {
           navigate('/');
@@ -64,7 +63,6 @@ function Market() {
     fetch(`${API_BASE_URL}auth/logout/`, {
       method: 'POST',
       credentials: 'include',
-      'Content-Type': 'application/x-www-form-urlencoded' 
     })
       .then(() => {
         setIsDropdownOpen(false);
@@ -158,7 +156,7 @@ function Market() {
 
   // Fetch available listings for Buy tab
   const fetchAvailableListings = () => {
-    fetch(`${API_BASE_URL}listings/`, { credentials: 'include',  'Content-Type': 'application/x-www-form-urlencoded' })
+    fetch(`${API_BASE_URL}listings/`, { credentials: 'include' })
       .then(res => res.json())
       .then(data => {
         setSubscriptionItems(data);
@@ -168,7 +166,7 @@ function Market() {
 
   // Fetch user's unsold listings for Sell tab
   const fetchUserUnsoldListings = () => {
-    fetch(`${API_BASE_URL}unsold-listings/`, { credentials: 'include',  'Content-Type': 'application/x-www-form-urlencoded' })
+    fetch(`${API_BASE_URL}unsold-listings/`, { credentials: 'include' })
       .then(res => res.json())
       .then(data => {
         setSellItems(data);
@@ -176,7 +174,7 @@ function Market() {
       .catch(err => console.error('Error fetching unsold listings:', err));
 
     // Also fetch sold listings for history
-    fetch(`${API_BASE_URL}sold-listings/`, { credentials: 'include',  'Content-Type': 'application/x-www-form-urlencoded' })
+    fetch(`${API_BASE_URL}sold-listings/`, { credentials: 'include' })
       .then(res => res.json())
       .then(data => {
         setSoldItems(data);
@@ -186,7 +184,7 @@ function Market() {
 
   // Fetch expired listings
   const fetchExpiredListings = () => {
-    fetch(`${API_BASE_URL}unsold-expired-listings/`, { credentials: 'include',  'Content-Type': 'application/x-www-form-urlencoded' })
+    fetch(`${API_BASE_URL}unsold-expired-listings/`, { credentials: 'include' })
       .then(res => res.json())
       .then(data => {
         setExpiredItems(data);
@@ -223,8 +221,7 @@ function Market() {
     fetch(`${API_BASE_URL}edit-listing-price/`, {
       method: 'POST',
       credentials: 'include',
-      body: formData,
-      'Content-Type': 'application/x-www-form-urlencoded' 
+      body: formData
     })
       .then(res => res.json())
       .then(data => {
@@ -400,10 +397,15 @@ const handleSellFormSubmit = (e) => {
     setSelectedItem(null);
   };
 
-  // Single button: Contact Seller
+  // Update the handleContactSeller function to use the existing seller_id
   const handleContactSeller = () => {
-    // Navigate to the chat page (replace '/chat' with your actual route)
-    navigate('/chats');
+    if (!selectedItem || !selectedItem.seller_id) {
+      console.error("No seller ID available for this listing");
+      return;
+    }
+    
+    // Navigate to the chat page with the seller's user ID
+    navigate(`/chats?user_id=${selectedItem.seller_id}`);
     handleCloseBuyModal();
   };
 

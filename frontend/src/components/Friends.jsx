@@ -18,10 +18,8 @@ function Friends() {
   const [isLoading, setIsLoading] = useState(false);
   const [pendingRequests, setPendingRequests] = useState([]);
   const [pendingSentIds, setPendingSentIds] = useState([]);
-  // const API_BASE_URL = 'http://localhost:8000/subspot/';
-  const API_BASE_URL = 'https://subspot.onrender.com/subspot/'
-
-
+  const API_BASE_URL = 'http://localhost:8000/subspot/';
+  
   // Fetch logged-in user info and connections data
   useEffect(() => {
     fetch(`${API_BASE_URL}auth/user/`, { credentials: 'include' })
@@ -135,11 +133,7 @@ function Friends() {
   const toggleDropdown = () => setIsDropdownOpen(!isDropdownOpen);
 
   // Sample data for demo purposes:
-  const [suggestedFriends, setSuggestedFriends] = useState([
-    { id: 1, username: 'John Doe', mutual_friends_count: 2 },
-    { id: 2, username: 'Alice Johnson', mutual_friends_count: 4 },
-    { id: 3, username: 'Mark Williams', mutual_friends_count: 1 },
-  ]);
+  const [suggestedFriends, setSuggestedFriends] = useState();
 
   const [myFriends, setMyFriends] = useState([
     { id: 101, username: 'Bob Smith', mutual_friends_count: 1 },
@@ -450,33 +444,39 @@ function Friends() {
           <div className="friends-list">
             {filteredList.length > 0 ? (
               filteredList.map(friend => (
-                <Link 
-                  to={`/chat/${friend.id}`} 
+                <div 
+                  className="subscription-item"
                   key={friend.id}
-                  style={{ textDecoration: 'none', color: 'inherit' }}
+                  style={{ cursor: 'pointer' }}
                 >
-                  <div className="subscription-item">
-                    <div className="subscription-left">
-                      <div className="subscription-text">
-                        <div className="subscription-name">{friend.username}</div>
-                        <div className="subscription-duration">
-                          {friend.mutual_friends_count ? `${friend.mutual_friends_count} mutual friends` : 'Friend'}
-                        </div>
+                  <div className="subscription-left">
+                    <div className="subscription-text">
+                      <div className="subscription-name">{friend.username}</div>
+                      <div className="subscription-duration">
+                        {friend.mutual_friends_count ? `${friend.mutual_friends_count} mutual friends` : 'Friend'}
                       </div>
                     </div>
-                    <div className="subscription-right">
-                      <button
-                        className="action-button"
-                        onClick={(e) => { 
-                          e.preventDefault();
-                          handleRemove(friend.id);
-                        }}
-                      >
-                        Remove
-                      </button>
-                    </div>
                   </div>
-                </Link>
+                  <div className="subscription-right">
+                    <Link
+                      to={`/chats?user_id=${friend.id}`}
+                      className="action-button"
+                      style={{ 
+                        textDecoration: 'none', 
+                        display: 'inline-block',
+                        marginRight: '10px'
+                      }}
+                    >
+                      Chat
+                    </Link>
+                    <button
+                      className="action-button"
+                      onClick={() => handleRemove(friend.id)}
+                    >
+                      Remove
+                    </button>
+                  </div>
+                </div>
               ))
             ) : (
               <p className="no-results-message">You have no friends</p>
