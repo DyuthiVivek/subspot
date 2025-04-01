@@ -44,10 +44,13 @@ function Market() {
   //user dropdown
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [userInfo, setUserInfo] = useState({ username: '', email: '' });
-  const API_BASE_URL = 'http://localhost:8000/subspot/';
+  const API_BASE_URL = 'https://subspot.onrender.com/subspot/'
 
   useEffect(() => {
-    fetch(`${API_BASE_URL}auth/user/`, { credentials: 'include' })
+    fetch(`${API_BASE_URL}auth/user/`, { 
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+    })
       .then(res => {
         if (res.status === 401) {
           navigate('/');
@@ -63,6 +66,8 @@ function Market() {
     fetch(`${API_BASE_URL}auth/logout/`, {
       method: 'POST',
       credentials: 'include',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams().toString()  // Empty body, but consistent format
     })
       .then(() => {
         setIsDropdownOpen(false);
@@ -138,7 +143,10 @@ function Market() {
 
   // Also fetch user's subscriptions for the sell form
   useEffect(() => {
-    fetch(`${API_BASE_URL}subscriptions/`, { credentials: 'include' })
+    fetch(`${API_BASE_URL}subscriptions/`, { 
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+    })
       .then(res => res.json())
       .then(data => {
         // Transform subscription data for the dropdown
@@ -156,7 +164,10 @@ function Market() {
 
   // Fetch available listings for Buy tab
   const fetchAvailableListings = () => {
-    fetch(`${API_BASE_URL}listings/`, { credentials: 'include' })
+    fetch(`${API_BASE_URL}listings/`, { 
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+    })
       .then(res => res.json())
       .then(data => {
         setSubscriptionItems(data);
@@ -166,7 +177,10 @@ function Market() {
 
   // Fetch user's unsold listings for Sell tab
   const fetchUserUnsoldListings = () => {
-    fetch(`${API_BASE_URL}unsold-listings/`, { credentials: 'include' })
+    fetch(`${API_BASE_URL}unsold-listings/`, { 
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+    })
       .then(res => res.json())
       .then(data => {
         setSellItems(data);
@@ -174,7 +188,10 @@ function Market() {
       .catch(err => console.error('Error fetching unsold listings:', err));
 
     // Also fetch sold listings for history
-    fetch(`${API_BASE_URL}sold-listings/`, { credentials: 'include' })
+    fetch(`${API_BASE_URL}sold-listings/`, { 
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+    })
       .then(res => res.json())
       .then(data => {
         setSoldItems(data);
@@ -184,7 +201,10 @@ function Market() {
 
   // Fetch expired listings
   const fetchExpiredListings = () => {
-    fetch(`${API_BASE_URL}unsold-expired-listings/`, { credentials: 'include' })
+    fetch(`${API_BASE_URL}unsold-expired-listings/`, { 
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+    })
       .then(res => res.json())
       .then(data => {
         setExpiredItems(data);
@@ -194,13 +214,14 @@ function Market() {
 
   // Mark subscription as sold
   const handleSold = (id) => {
-    const formData = new FormData();
-    formData.append('listing_id', id);
+    const urlEncodedData = new URLSearchParams();
+    urlEncodedData.append('listing_id', id);
 
     fetch(`${API_BASE_URL}mark-sold/`, {
       method: 'POST',
       credentials: 'include',
-      body: formData
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: urlEncodedData.toString()
     })
       .then(res => res.json())
       .then(data => {
@@ -214,14 +235,15 @@ function Market() {
 
   // Save the updated price
   const handleSavePrice = (id) => {
-    const formData = new FormData();
-    formData.append('listing_id', id);
-    formData.append('new_price', tempPrice);
+    const urlEncodedData = new URLSearchParams();
+    urlEncodedData.append('listing_id', id);
+    urlEncodedData.append('new_price', tempPrice);
 
     fetch(`${API_BASE_URL}edit-listing-price/`, {
       method: 'POST',
       credentials: 'include',
-      body: formData
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: urlEncodedData.toString()
     })
       .then(res => res.json())
       .then(data => {

@@ -18,7 +18,8 @@ function Friends() {
   const [isLoading, setIsLoading] = useState(false);
   const [pendingRequests, setPendingRequests] = useState([]);
   const [pendingSentIds, setPendingSentIds] = useState([]);
-  const API_BASE_URL = 'http://localhost:8000/subspot/';
+  // const API_BASE_URL = 'http://localhost:8000/subspot/';
+  const API_BASE_URL = 'https://subspot.onrender.com/subspot/'
   
   // Fetch logged-in user info and connections data
   useEffect(() => {
